@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN" data-game-id="2048">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>2048</title>
+    <link rel="stylesheet" href="../shared/game-shell.css" />
+    <link rel="stylesheet" href="style/main.css" />
+    <link rel="stylesheet" href="fifi.css" />
+  </head>
+  <body>
+    <main class="container">
+      <div class="heading">
+        <h1 class="title">2048</h1>
+        <div class="scores-container" aria-label="分数">
+          <div class="score-container">0</div>
+          <div class="best-container">0</div>
+        </div>
+      </div>
+      <div class="above-game">
+        <p class="game-intro">把相同数字合在一起，冲向 <strong>2048</strong>。</p>
+        <button class="restart-button" type="button">新一局</button>
+      </div>
+      <div class="game-container">
+        <div class="game-message">
+          <p></p>
+          <div class="lower">
+            <button class="keep-playing-button" type="button">继续</button>
+            <button class="retry-button" type="button">再试一次</button>
+          </div>
+        </div>
+        <div class="grid-container" aria-hidden="true">
+          <div class="grid-row"><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div></div>
+          <div class="grid-row"><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div></div>
+          <div class="grid-row"><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div></div>
+          <div class="grid-row"><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div></div>
+        </div>
+        <div class="tile-container"></div>
+      </div>
+      <p class="game-explanation"><strong>玩法：</strong>使用方向键，或在棋盘上滑动。相同数字相撞后会合并。</p>
+    </main>
+
+    <script src="../shared/bridge.js"></script>
+    <script src="js/bind_polyfill.js"></script>
+    <script src="js/classlist_polyfill.js"></script>
+    <script src="js/animframe_polyfill.js"></script>
+    <script src="js/keyboard_input_manager.js"></script>
+    <script src="js/html_actuator.js"></script>
+    <script src="js/grid.js"></script>
+    <script src="js/tile.js"></script>
+    <script src="js/local_storage_manager.js"></script>
+    <script src="js/game_manager.js"></script>
+    <script src="js/application.js"></script>
+    <script src="fifi-adapter.js"></script>
+  </body>
+</html>

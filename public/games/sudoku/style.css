@@ -1,0 +1,15 @@
+body { display: grid; place-items: start center; background: #f8f5ff; }
+.sudoku-shell { width: min(100%, 500px); }
+.game-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.game-head span { color: #5c5cf0; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.15em; }
+h1 { margin: 2px 0 0; font-size: 2.2rem; letter-spacing: -0.06em; }
+.game-head button { padding: 9px 13px; border: 2px solid #292641; border-radius: 9px; background: #e1ff85; box-shadow: 3px 3px 0 #292641; font-weight: 900; }
+.hint { margin: 9px 0 15px; color: #6a667e; font-size: 0.88rem; }
+.sudoku-grid { display: grid; grid-template-columns: repeat(9, 1fr); aspect-ratio: 1; overflow: hidden; border: 3px solid #292641; border-radius: 10px; background: #292641; gap: 1px; }
+.sudoku-grid input { width: 100%; min-width: 0; border: 0; border-radius: 0; color: #292641; background: white; text-align: center; font-size: clamp(1rem, 4vw, 1.45rem); font-weight: 800; caret-color: #5c5cf0; }
+.sudoku-grid input:nth-child(9n + 3), .sudoku-grid input:nth-child(9n + 6) { border-right: 2px solid #292641; }
+.sudoku-grid input:nth-child(n + 19):nth-child(-n + 27), .sudoku-grid input:nth-child(n + 46):nth-child(-n + 54) { border-bottom: 2px solid #292641; }
+.sudoku-grid input[data-fixed="true"] { color: #5c5cf0; background: #ecebff; }
+.sudoku-grid input[data-valid="false"] { color: #b51f5d; background: #ffd7e5; }
+.status { min-height: 1.5em; margin: 12px 0 0; color: #625e76; text-align: center; font-size: 0.86rem; }
+@media (max-width: 430px) { body { padding: 12px; } .hint { font-size: 0.78rem; } }

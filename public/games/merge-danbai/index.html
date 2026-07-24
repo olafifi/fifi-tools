@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN" data-game-id="merge-danbai">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>合成大蛋白</title>
+    <link rel="stylesheet" href="../shared/game-shell.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="merge-shell">
+      <div class="merge-head">
+        <div><span>合成大蛋白</span><strong>分数 <b data-score>0</b></strong></div>
+        <div class="next" data-next-danbai><small>下一个</small><img alt="下一个蛋白" /></div>
+      </div>
+      <div class="merge-stage" data-merge-stage>
+        <div class="loss-line"><span>危险线</span></div>
+        <img class="aim-piece" data-aim-piece alt="准备投放的蛋白" />
+      </div>
+      <p data-status aria-live="polite">移动蛋白，点击或轻触投放。两个相同蛋白会合成。</p>
+    </main>
+    <script src="../shared/bridge.js"></script>
+    <script src="vendor/matter.min.js"></script>
+    <script type="module" src="game.js"></script>
+  </body>
+</html>

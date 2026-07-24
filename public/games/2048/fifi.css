@@ -1,0 +1,13 @@
+body { padding: 16px 0 24px; background: #f7f6f1; }
+.container { margin-top: 0; }
+.heading { margin-bottom: 8px; }
+.title { color: #312c68; }
+.above-game { display: flex; align-items: center; gap: 12px; }
+.above-game p { margin: 0; }
+.restart-button, .keep-playing-button, .retry-button { border: 0; }
+.game-explanation { line-height: 1.55; }
+@media screen and (max-width: 520px) {
+  body { padding-top: 12px; }
+  .container { width: 280px; }
+  .above-game { align-items: flex-start; }
+}
