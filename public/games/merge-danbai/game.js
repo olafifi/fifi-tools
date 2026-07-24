@@ -1,11 +1,40 @@
-import { DANBAI_TIERS, mergeResult } from './merge-rules.js';
+import { DANBAI_TIERS, mergeResult, updateDangerTimer } from './merge-rules.js';
+import { apiBaseFromLocation, createLeaderboardClient } from './leaderboard-client.js';
+import { createLeaderboardView } from './leaderboard-view.js';
+import { applyGameOverView, resetGameOverView } from './session-view.js';
 
 const { Engine, Render, Runner, Bodies, Composite, Events } = Matter;
 const stage = document.querySelector('[data-merge-stage]');
+const aimBubble = document.querySelector('[data-aim-bubble]');
 const aimPiece = document.querySelector('[data-aim-piece]');
+const guide = document.querySelector('[data-drop-guide]');
+const gameOverPanel = document.querySelector('[data-game-over]');
+const finalScoreNode = document.querySelector('[data-final-score]');
+const localRestart = document.querySelector('[data-local-restart]');
 const nextImage = document.querySelector('[data-next-danbai] img');
 const scoreNode = document.querySelector('[data-score]');
 const statusNode = document.querySelector('[data-status]');
+const mergeShell = document.querySelector('.merge-shell');
+const leaderboardStatus = document.querySelector('[data-leaderboard-status]');
+const leaderboardList = document.querySelector('[data-leaderboard-list]');
+const openLeaderboard = document.querySelector('[data-open-leaderboard]');
+const closeLeaderboard = document.querySelector('[data-close-leaderboard]');
+const retryLeaderboard = document.querySelector('[data-retry-leaderboard]');
+const qualifyingForm = document.querySelector('[data-qualifying-form]');
+const nicknameInput = document.querySelector('[data-nickname]');
+const submitScore = document.querySelector('[data-submit-score]');
+const submitStatus = document.querySelector('[data-submit-status]');
+const apiBase = apiBaseFromLocation();
+const leaderboardClient = apiBase ? createLeaderboardClient({ apiBase }) : null;
+const leaderboardView = createLeaderboardView({
+  status: leaderboardStatus,
+  list: leaderboardList,
+  form: qualifyingForm,
+  input: nicknameInput,
+  submit: submitScore,
+  submitStatus,
+  retry: retryLeaderboard
+});
 const width = 420;
 const height = 520;
 const engine = Engine.create();
@@ -29,7 +58,14 @@ let nextTier = 1;
 let canDrop = true;
 let gameOver = false;
 let destroyed = false;
+let dangerSince = null;
+let leaderboardState = {
+  entries: [],
+  cutoffScore: 0,
+  available: false
+};
 const merging = new Set();
+const faceImages = new Map();
 
 function randomStarterTier() {
   return Math.floor(Math.random() * 4);
@@ -51,11 +87,9 @@ function addDanbai(x, y, tierIndex) {
     friction: 0.25,
     density: 0.0012,
     render: {
-      sprite: {
-        texture: tier.image,
-        xScale: tier.radius / 64,
-        yScale: tier.radius / 64
-      }
+      fillStyle: tier.fill,
+      strokeStyle: tier.stroke,
+      lineWidth: 3
     }
   });
   body.plugin.tier = tierIndex;
@@ -66,9 +100,43 @@ function addDanbai(x, y, tierIndex) {
 function refreshQueue() {
   const tier = DANBAI_TIERS[currentTier];
   aimPiece.src = tier.image;
-  aimPiece.style.width = `${tier.radius * 2}px`;
-  aimPiece.style.left = `${(aimX / width) * 100}%`;
+  aimBubble.style.setProperty('--bubble-size', `${tier.radius * 2}px`);
+  aimBubble.style.setProperty('--bubble-fill', tier.fill);
+  aimBubble.style.setProperty('--bubble-stroke', tier.stroke);
+  aimBubble.style.left = `${(aimX / width) * 100}%`;
+  guide.style.left = aimBubble.style.left;
   nextImage.src = DANBAI_TIERS[nextTier].image;
+}
+
+function getFaceImage(src) {
+  if (!faceImages.has(src)) {
+    const image = new Image();
+    image.src = src;
+    faceImages.set(src, image);
+  }
+  return faceImages.get(src);
+}
+
+function drawDanbaiFaces() {
+  const context = render.context;
+  for (const body of Composite.allBodies(engine.world)) {
+    const tierIndex = body.plugin?.tier;
+    if (tierIndex === undefined) continue;
+    const tier = DANBAI_TIERS[tierIndex];
+    const image = getFaceImage(tier.image);
+    if (!image.complete) continue;
+    const size = tier.radius * 1.56;
+    context.save();
+    context.translate(body.position.x, body.position.y);
+    context.rotate(body.angle);
+    context.beginPath();
+    context.arc(0, 0, tier.radius - 2, 0, Math.PI * 2);
+    context.strokeStyle = 'rgba(255,255,255,.9)';
+    context.lineWidth = 2;
+    context.stroke();
+    context.drawImage(image, -size / 2, -size / 2, size, size);
+    context.restore();
+  }
 }
 
 function updateScore(points) {
@@ -76,14 +144,36 @@ function updateScore(points) {
   scoreNode.textContent = String(score);
 }
 
+async function loadLeaderboard() {
+  if (!leaderboardClient) {
+    leaderboardState.available = false;
+    leaderboardView.setUnavailable(false);
+    return;
+  }
+  try {
+    leaderboardState.available = false;
+    leaderboardView.setLoading();
+    leaderboardState = { ...(await leaderboardClient.load()), available: true };
+    leaderboardView.setReady();
+    leaderboardView.render(leaderboardState.entries);
+  } catch {
+    leaderboardState.available = false;
+    leaderboardView.setUnavailable();
+  }
+}
+
 function drop() {
   if (!canDrop || gameOver || destroyed) return;
   canDrop = false;
+  guide.hidden = true;
   addDanbai(aimX, 68, currentTier);
   currentTier = nextTier;
   nextTier = randomStarterTier();
   refreshQueue();
-  window.setTimeout(() => { canDrop = true; }, 430);
+  window.setTimeout(() => {
+    canDrop = !gameOver && !destroyed;
+    guide.hidden = !canDrop;
+  }, 430);
 }
 
 function moveAim(clientX) {
@@ -112,17 +202,36 @@ Events.on(engine, 'collisionStart', ({ pairs }) => {
   }
 });
 
+Events.on(render, 'afterRender', drawDanbaiFaces);
+
 Events.on(engine, 'afterUpdate', () => {
   if (gameOver || destroyed) return;
-  const danger = Composite.allBodies(engine.world).some((body) =>
-    !body.isStatic && body.position.y < 108 && body.speed < 0.18 && body.plugin.tier !== undefined
+  const danger = updateDangerTimer(
+    Composite.allBodies(engine.world),
+    dangerSince,
+    engine.timing.timestamp
   );
-  if (danger) {
-    gameOver = true;
-    canDrop = false;
-    statusNode.textContent = '堆到危险线啦！点窗口顶部的重开按钮再来一局。';
-  }
+  dangerSince = danger.since;
+  if (danger.gameOver) finishGame();
 });
+
+function finishGame() {
+  gameOver = true;
+  canDrop = false;
+  runner.enabled = false;
+  applyGameOverView({
+    guide,
+    panel: gameOverPanel,
+    finalScore: finalScoreNode,
+    status: statusNode
+  }, score);
+  leaderboardView.showQualification({
+    available: leaderboardState.available,
+    entryCount: leaderboardState.entries.length,
+    cutoffScore: leaderboardState.cutoffScore,
+    score
+  });
+}
 
 function restart() {
   Composite.clear(engine.world, false, true);
@@ -134,7 +243,18 @@ function restart() {
   nextTier = randomStarterTier();
   canDrop = true;
   gameOver = false;
-  statusNode.textContent = '移动蛋白，点击或轻触投放。两个相同蛋白会合成。';
+  dangerSince = null;
+  runner.enabled = true;
+  qualifyingForm.hidden = true;
+  nicknameInput.disabled = false;
+  submitScore.disabled = false;
+  submitStatus.textContent = '';
+  resetGameOverView({
+    guide,
+    panel: gameOverPanel,
+    finalScore: finalScoreNode,
+    status: statusNode
+  });
   refreshQueue();
 }
 
@@ -152,7 +272,38 @@ function destroy() {
 
 stage.addEventListener('pointermove', onPointerMove);
 stage.addEventListener('pointerdown', onPointerDown);
-FifiGameBridge.register({ restart, pause() { runner.enabled = false; }, resume() { runner.enabled = true; }, destroy });
+localRestart.addEventListener('click', restart);
+qualifyingForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!leaderboardClient) return;
+  leaderboardView.setSubmitPending(true);
+  try {
+    const result = await leaderboardClient.submit({
+      nickname: nicknameInput.value,
+      score
+    });
+    leaderboardState = {
+      entries: result.entries,
+      cutoffScore: result.cutoffScore,
+      available: true
+    };
+    leaderboardView.render(result.entries);
+    leaderboardView.setSubmitResult(result.rank);
+  } catch (error) {
+    leaderboardView.setSubmitError(error?.message || '提交失败，请重试。');
+  }
+});
+openLeaderboard.addEventListener('click', () => {
+  mergeShell.classList.add('is-leaderboard-open');
+  closeLeaderboard.focus({ preventScroll: true });
+});
+closeLeaderboard.addEventListener('click', () => {
+  mergeShell.classList.remove('is-leaderboard-open');
+  stage.focus({ preventScroll: true });
+});
+retryLeaderboard.addEventListener('click', loadLeaderboard);
+FifiGameBridge.register({ restart, pause() { runner.enabled = false; }, resume() { if (!gameOver) runner.enabled = true; }, destroy });
 restart();
 Render.run(render);
 Runner.run(runner, engine);
+loadLeaderboard();

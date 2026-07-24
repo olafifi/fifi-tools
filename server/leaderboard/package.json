@@ -1,0 +1,20 @@
+{
+  "name": "fifi-leaderboard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "vitest run",
+    "deploy": "wrangler deploy",
+    "migrate:local": "wrangler d1 migrations apply fifi-leaderboard --local",
+    "migrate:remote": "wrangler d1 migrations apply fifi-leaderboard --remote",
+    "backup": "node --input-type=module -e \"import fs from 'node:fs'; fs.mkdirSync('backups', { recursive: true })\" && wrangler d1 export fifi-leaderboard --remote --output backups/fifi-leaderboard.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.18.8",
+    "vitest": "4.1.10",
+    "wrangler": "4.114.0"
+  }
+}

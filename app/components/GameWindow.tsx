@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { GameItem } from '../data/catalog';
 import { postGameCommand } from '../lib/gameBridge';
 
@@ -18,6 +18,11 @@ export function GameWindow({
   }>({ gameId: null, phase: 'loading' });
 
   const phase = game && load.gameId === game.id ? load.phase : 'loading';
+
+  const focusGame = () => {
+    frameRef.current?.contentWindow?.focus();
+    postGameCommand(frameRef.current, 'focus');
+  };
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -45,6 +50,7 @@ export function GameWindow({
       ) return;
 
       setLoad({ gameId: game.id, phase: 'ready' });
+      focusGame();
     };
 
     window.addEventListener('message', receiveReady);
@@ -71,7 +77,10 @@ export function GameWindow({
     onClose();
   };
 
-  const restart = () => postGameCommand(frameRef.current, 'restart');
+  const restart = () => {
+    postGameCommand(frameRef.current, 'restart');
+    window.requestAnimationFrame(focusGame);
+  };
 
   const retry = () => {
     setLoad({ gameId: game.id, phase: 'loading' });
@@ -87,10 +96,6 @@ export function GameWindow({
         close();
       }}
       ref={dialogRef}
-      style={{
-        '--game-width': `${game.preferredWidth}px`,
-        '--game-height': `${game.preferredHeight}px`
-      } as CSSProperties}
     >
       <header className="game-window__bar">
         <div className="game-window__title">

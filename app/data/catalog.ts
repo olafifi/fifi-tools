@@ -1,4 +1,9 @@
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+const leaderboardApiBase = import.meta.env.VITE_LEADERBOARD_API_BASE || '';
+const gameModule = (path: string, apiBase = '') => {
+  const url = asset(path);
+  return apiBase ? `${url}?leaderboardApi=${encodeURIComponent(apiBase)}` : url;
+};
 
 export type ToolItem = {
   id: string;
@@ -50,8 +55,8 @@ export const GAMES: GameItem[] = [
     name: '2048',
     mascotAsset: asset('danbai/blank.png'),
     modulePath: asset('games/2048/index.html'),
-    preferredWidth: 460,
-    preferredHeight: 620,
+    preferredWidth: 820,
+    preferredHeight: 760,
     inputMode: 'both'
   },
   {
@@ -59,8 +64,8 @@ export const GAMES: GameItem[] = [
     name: '数独',
     mascotAsset: asset('danbai/eye-roll.png'),
     modulePath: asset('games/sudoku/index.html'),
-    preferredWidth: 560,
-    preferredHeight: 680,
+    preferredWidth: 820,
+    preferredHeight: 760,
     inputMode: 'both'
   },
   {
@@ -68,8 +73,8 @@ export const GAMES: GameItem[] = [
     name: '俄罗斯方块',
     mascotAsset: asset('danbai/rage.png'),
     modulePath: asset('games/tetris/index.html'),
-    preferredWidth: 520,
-    preferredHeight: 700,
+    preferredWidth: 820,
+    preferredHeight: 760,
     inputMode: 'both'
   },
   {
@@ -77,17 +82,17 @@ export const GAMES: GameItem[] = [
     name: '贪吃蛇',
     mascotAsset: asset('danbai/tempted.png'),
     modulePath: asset('games/snake/index.html'),
-    preferredWidth: 600,
-    preferredHeight: 650,
+    preferredWidth: 820,
+    preferredHeight: 760,
     inputMode: 'both'
   },
   {
     id: 'merge-danbai',
     name: '合成大蛋白',
     mascotAsset: asset('danbai/expect.png'),
-    modulePath: asset('games/merge-danbai/index.html'),
-    preferredWidth: 560,
-    preferredHeight: 700,
+    modulePath: gameModule('games/merge-danbai/index.html', leaderboardApiBase),
+    preferredWidth: 820,
+    preferredHeight: 760,
     inputMode: 'both'
   }
 ];

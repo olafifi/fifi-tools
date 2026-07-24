@@ -7,6 +7,8 @@ test('GitHub Pages workflow builds, tests, and deploys dist', async () => {
 
   for (const required of [
     'npm ci',
+    'npm ci --prefix server/leaderboard',
+    'npm test --prefix server/leaderboard',
     'npm test',
     'npm run test:games',
     'npm run e2e',
@@ -15,7 +17,14 @@ test('GitHub Pages workflow builds, tests, and deploys dist', async () => {
     'actions/upload-pages-artifact@',
     'actions/deploy-pages@',
     'pages: write',
-    'id-token: write'
+    'id-token: write',
+    'VITE_LEADERBOARD_API_BASE',
+    'LEADERBOARD_API_BASE',
+    'Validate leaderboard API',
+    "protocol !== 'https:'",
+    '/healthz',
+    'FRONTEND_ORIGIN',
+    'access-control-allow-origin'
   ]) {
     assert.match(workflow, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -24,4 +33,20 @@ test('GitHub Pages workflow builds, tests, and deploys dist', async () => {
 test('2048 does not request the missing Clear Sans stylesheet', async () => {
   const stylesheet = await readFile('public/games/2048/style/main.css', 'utf8');
   assert.doesNotMatch(stylesheet, /fonts\/clear-sans\.css/);
+});
+
+test('2048 uses the approved berry-soda motion and palette', async () => {
+  const theme = await readFile('public/games/2048/fifi.css', 'utf8');
+  assert.match(theme, /--tile-move-duration:\s*170ms/);
+  assert.match(theme, /\.tile\.tile-2048/);
+  assert.match(theme, /#6e5a9b/i);
+});
+
+test('merge Danbai exposes drop guidance and local game-over controls', async () => {
+  const mergeHtml = await readFile('public/games/merge-danbai/index.html', 'utf8');
+  assert.match(mergeHtml, /data-drop-guide/);
+  assert.match(mergeHtml, /data-game-over/);
+  assert.match(mergeHtml, /data-final-score/);
+  assert.match(mergeHtml, /data-local-restart/);
+  assert.match(mergeHtml, /data-retry-leaderboard/);
 });

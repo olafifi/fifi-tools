@@ -1,8 +1,9 @@
-body { display: grid; place-items: start center; background: #292641; color: white; }
-.tetris-shell { width: min(100%, 330px); text-align: center; }
+body { place-items: center; background: #292641; color: white; }
+.tetris-shell { width: min(100%, 360px); max-height: 100%; margin: auto; text-align: center; }
 .score-line { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 900; }
 .score-line strong { padding: 7px 10px; border-radius: 8px; color: #292641; background: #e1ff85; font-size: 0.82rem; }
-canvas { display: block; width: min(100%, 240px); height: auto; margin: auto; border: 3px solid white; border-radius: 8px; background: #ecebff; image-rendering: pixelated; }
+.tetris-shell canvas { display: block; width: min(280px, calc((100dvh - 145px) / 2)); height: auto; margin: auto; border: 3px solid white; border-radius: 8px; background: #ecebff; image-rendering: pixelated; }
 .touch-controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin: 12px auto 0; max-width: 270px; }
 .touch-controls button { min-height: 42px; border: 2px solid #121022; border-radius: 9px; background: #ffe268; font-size: 1.2rem; font-weight: 900; box-shadow: 2px 2px 0 #fff; }
 p { margin: 13px 0 0; color: #c9c5ef; font-size: 0.78rem; }
+@media (max-height: 650px) { .tetris-shell > p { display: none; } }

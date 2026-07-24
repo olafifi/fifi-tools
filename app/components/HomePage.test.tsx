@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { GAMES } from '../data/catalog';
 import { GameStation } from './GameStation';
 import { HomePage } from './HomePage';
 
@@ -55,6 +56,8 @@ describe('HomePage', () => {
     await userEvent.click(screen.getByRole('button', { name: '2048' }));
 
     const frame = screen.getByTitle('2048 游戏区域') as HTMLIFrameElement;
+    const postMessage = vi.spyOn(frame.contentWindow!, 'postMessage');
+    vi.spyOn(frame.contentWindow!, 'focus').mockImplementation(() => undefined);
     const restart = screen.getByRole('button', { name: '重新开始 2048' });
     expect(restart).toBeDisabled();
 
@@ -68,6 +71,17 @@ describe('HomePage', () => {
 
     expect(restart).toBeEnabled();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(postMessage).toHaveBeenCalledWith(
+      { source: 'fifi-tools', type: 'focus' },
+      window.location.origin
+    );
+  });
+
+  it('uses one approved window size for every game', () => {
+    for (const game of GAMES) {
+      expect(game.preferredWidth).toBe(820);
+      expect(game.preferredHeight).toBe(760);
+    }
   });
 
   it('shows a useful retry action when a game cannot load', () => {
@@ -94,6 +108,7 @@ describe('HomePage', () => {
     await userEvent.click(trigger);
 
     const firstFrame = screen.getByTitle('2048 游戏区域') as HTMLIFrameElement;
+    vi.spyOn(firstFrame.contentWindow!, 'focus').mockImplementation(() => undefined);
     act(() => {
       window.dispatchEvent(new MessageEvent('message', {
         data: { source: 'fifi-game', type: 'ready', gameId: '2048' },

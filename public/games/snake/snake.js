@@ -28,6 +28,10 @@
     } while (snake.some((part) => part.x === food.x && part.y === food.y));
   }
 
+  function focusGame() {
+    shell.focus({ preventScroll: true });
+  }
+
   function setDirection(next) {
     const opposite = { up: 'down', down: 'up', left: 'right', right: 'left' };
     if (opposite[direction] !== next) nextDirection = next;
@@ -92,6 +96,7 @@
     paused = false;
     placeFood();
     draw();
+    focusGame();
   }
 
   function onKeyDown(event) {
@@ -107,7 +112,7 @@
 
   window.addEventListener('keydown', onKeyDown);
   buttons.forEach((button) => button.addEventListener('click', () => setDirection(button.dataset.directionButton)));
-  FifiGameBridge.register({ restart, pause() { paused = true; }, resume() { paused = false; }, destroy });
+  FifiGameBridge.register({ restart, focus: focusGame, pause() { paused = true; }, resume() { paused = false; }, destroy });
   restart();
   timer = window.setInterval(tick, 220);
 })();

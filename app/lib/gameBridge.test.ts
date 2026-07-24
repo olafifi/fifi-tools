@@ -13,4 +13,16 @@ describe('postGameCommand', () => {
       window.location.origin
     );
   });
+
+  it('can request focus inside the selected game', () => {
+    const postMessage = vi.fn();
+    const frame = { contentWindow: { postMessage } } as unknown as HTMLIFrameElement;
+
+    postGameCommand(frame, 'focus');
+
+    expect(postMessage).toHaveBeenCalledWith(
+      { source: 'fifi-tools', type: 'focus' },
+      window.location.origin
+    );
+  });
 });

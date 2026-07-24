@@ -1,13 +1,41 @@
-body { padding: 16px 0 24px; background: #f7f6f1; }
-.container { margin-top: 0; }
+:root {
+  --tile-move-duration: 170ms;
+  --berry-ink: #514866;
+  --berry-board: #5b4f7b;
+  --berry-cell: #756a92;
+}
+
+html, body { color: var(--berry-ink); background: #eee9f6; }
+body { display: grid; place-items: center; margin: 0; padding: 12px; }
+.container { width: 500px; max-height: 100%; margin-top: 0; }
 .heading { margin-bottom: 8px; }
-.title { color: #312c68; }
+.title { color: var(--berry-ink); }
 .above-game { display: flex; align-items: center; gap: 12px; }
 .above-game p { margin: 0; }
 .restart-button, .keep-playing-button, .retry-button { border: 0; }
-.game-explanation { line-height: 1.55; }
+.game-container { margin-top: 14px; background: var(--berry-board); }
+.grid-cell { background: var(--berry-cell); }
+.tile { transition: transform var(--tile-move-duration) cubic-bezier(.22,.61,.36,1); }
+.tile.tile-2 .tile-inner { color: #514866; background: #f1dce8; }
+.tile.tile-4 .tile-inner { color: #514866; background: #e8c4d6; }
+.tile.tile-8 .tile-inner { color: #493e61; background: #f3c998; }
+.tile.tile-16 .tile-inner { color: #413757; background: #e7dc8f; }
+.tile.tile-32 .tile-inner { color: #35464d; background: #bcd9c4; }
+.tile.tile-64 .tile-inner { color: #324a53; background: #a9cfda; }
+.tile.tile-128 .tile-inner { color: #fff; background: #9683bd; }
+.tile.tile-256 .tile-inner { color: #fff; background: #c3779c; }
+.tile.tile-512 .tile-inner { color: #fff; background: #6e5a9b; }
+.tile.tile-1024 .tile-inner { color: #fff; background: #58457f; }
+.tile.tile-2048 .tile-inner { color: #fff; background: #453568; box-shadow: 0 0 24px rgba(195,158,219,.55); }
+.game-explanation { margin-top: 12px; line-height: 1.55; }
+@media screen and (max-height: 750px) {
+  .game-explanation { display: none; }
+}
 @media screen and (max-width: 520px) {
   body { padding-top: 12px; }
   .container { width: 280px; }
   .above-game { align-items: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile { transition-duration: 0ms; }
 }

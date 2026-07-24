@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fifi-leaderboard",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-24",
+  "workers_dev": true,
+  "vars": {
+    "ALLOWED_ORIGIN": "https://olafifi.github.io"
+  },
+  "secrets": {
+    "required": ["SOURCE_HASH_SECRET"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "fifi-leaderboard",
+      "database_id": "3399cb46-a67c-45ae-bb38-e0b476c43158",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

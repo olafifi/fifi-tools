@@ -25,7 +25,7 @@ button { color: inherit; }
 img { display: block; max-width: 100%; }
 
 .site-shell {
-  width: min(1220px, calc(100% - 48px));
+  width: calc(100% - 32px);
   margin: 22px auto 32px;
 }
 
@@ -130,7 +130,7 @@ main { display: grid; gap: 42px; }
 
 .home-content {
   display: grid;
-  grid-template-columns: minmax(270px, 0.76fr) minmax(0, 2fr);
+  grid-template-columns: clamp(270px, 18vw, 320px) minmax(0, 1fr);
   gap: 24px;
   align-items: stretch;
 }
@@ -212,9 +212,9 @@ main { display: grid; gap: 42px; }
 footer { display: flex; justify-content: space-between; gap: 20px; margin-top: 38px; padding: 22px 3px 0; border-top: 1px solid var(--line); color: #77728c; font-size: 0.82rem; }
 
 .game-window {
-  width: min(var(--game-width), calc(100vw - 34px));
+  width: min(820px, calc(100vw - 34px));
   max-width: none;
-  height: min(var(--game-height), calc(100dvh - 34px));
+  height: min(760px, calc(100dvh - 34px));
   max-height: none;
   padding: 0;
   overflow: hidden;

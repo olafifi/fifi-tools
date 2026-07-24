@@ -1,4 +1,21 @@
 import { expect, test } from '@playwright/test';
+import type { FrameLocator } from '@playwright/test';
+
+async function expectFrameWithoutScrollbars(frame: FrameLocator, label: string) {
+  const metrics = await frame.locator('body').evaluate(() => {
+    const root = document.documentElement;
+    return {
+      horizontal: root.scrollWidth <= root.clientWidth + 1,
+      vertical: root.scrollHeight <= root.clientHeight + 1,
+      scrollWidth: root.scrollWidth,
+      clientWidth: root.clientWidth,
+      scrollHeight: root.scrollHeight,
+      clientHeight: root.clientHeight
+    };
+  });
+  expect(metrics.horizontal, label).toBe(true);
+  expect(metrics.vertical, `${label}: ${metrics.scrollHeight}px content in ${metrics.clientHeight}px viewport`).toBe(true);
+}
 
 test('home stays usable without horizontal overflow at key widths', async ({ page }) => {
   for (const viewport of [
@@ -14,6 +31,41 @@ test('home stays usable without horizontal overflow at key widths', async ({ pag
     await expect(page.getByRole('link', { name: /FIFI-Richly/ })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
   }
+});
+
+test('desktop home uses the viewport and keeps the game station on the left', async ({ page }) => {
+  for (const viewport of [
+    { width: 1024, height: 900 },
+    { width: 1440, height: 900 },
+    { width: 1920, height: 1080 }
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('./');
+
+    const shellBox = await page.locator('.site-shell').boundingBox();
+    const contentBox = await page.locator('.home-content').boundingBox();
+    const stationBox = await page.locator('.game-station').boundingBox();
+    if (!shellBox || !contentBox || !stationBox) throw new Error('Home layout boxes are missing.');
+
+    expect(shellBox.x).toBeLessThanOrEqual(17);
+    expect(viewport.width - shellBox.x - shellBox.width).toBeLessThanOrEqual(17);
+    expect(Math.abs(stationBox.x - contentBox.x)).toBeLessThanOrEqual(1);
+    expect(stationBox.width).toBeGreaterThanOrEqual(269);
+    expect(stationBox.width).toBeLessThanOrEqual(321);
+
+    const cardWidths = await page.locator('.tool-card').evaluateAll((cards) =>
+      cards.map((card) => card.getBoundingClientRect().width)
+    );
+    expect(cardWidths).toHaveLength(2);
+    expect(Math.abs(cardWidths[0] - cardWidths[1])).toBeLessThanOrEqual(1);
+    expect(cardWidths[0]).toBeGreaterThan(viewport.width >= 1440 ? 500 : 300);
+  }
+
+  await page.setViewportSize({ width: 900, height: 900 });
+  await page.goto('./');
+  const contentWidth = await page.locator('.home-content').evaluate((node) => node.getBoundingClientRect().width);
+  const stationWidth = await page.locator('.game-station').evaluate((node) => node.getBoundingClientRect().width);
+  expect(Math.abs(contentWidth - stationWidth)).toBeLessThanOrEqual(1);
 });
 
 const games = [
@@ -39,17 +91,30 @@ test('all five games become ready, respond, restart, and close inline', async ({
 
     if (game.name === '2048') {
       await expect(frame.locator('.tile')).toHaveCount(2);
+      await expect(frame.locator('.tile').first()).toHaveCSS('transition-duration', '0.17s');
+      await expect(frame.locator('.game-container')).toHaveCSS('width', '500px');
     } else if (game.name === '数独') {
       await expect(frame.getByRole('gridcell')).toHaveCount(81);
     } else if (game.name === '俄罗斯方块') {
       await expect(frame.getByRole('button', { name: '旋转' })).toBeVisible();
       await frame.getByRole('button', { name: '旋转' }).click();
     } else if (game.name === '贪吃蛇') {
-      await frame.getByRole('button', { name: '向上' }).click();
-      await expect(frame.locator('.snake-shell')).toHaveAttribute('data-direction', 'up');
+      const shell = frame.locator('.snake-shell');
+      await expect(shell).toBeFocused();
+      await page.keyboard.press('ArrowUp');
+      await expect(shell).toHaveAttribute('data-direction', 'up');
+
+      await restart.click();
+      await expect(shell).toBeFocused();
+      await page.keyboard.press('ArrowDown');
+      await expect(shell).toHaveAttribute('data-direction', 'down');
     } else {
       await expect(frame.getByAltText('下一个蛋白')).toHaveAttribute('src', /danbai\/.+\.png/);
+      const guide = frame.locator('[data-drop-guide]');
+      await expect(guide).toBeVisible();
       await frame.locator('[data-merge-stage]').click({ position: { x: 150, y: 80 } });
+      await expect(guide).toBeHidden();
+      await expect(guide).toBeVisible({ timeout: 1000 });
     }
 
     await restart.click();
@@ -65,4 +130,108 @@ test('all five games become ready, respond, restart, and close inline', async ({
   await expect(page.getByRole('button', { name: '重新加载 2048' })).toBeVisible();
   await page.getByRole('button', { name: '关闭 2048' }).click();
   await page.unroute('**/games/2048/index.html');
+});
+
+test('all five games fit without iframe scrollbars at desktop and mobile sizes', async ({ page }) => {
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 375, height: 812 }
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('./');
+
+    for (const game of games) {
+      await page.getByRole('button', { name: game.name, exact: true }).click();
+      await expect(page.getByRole('button', { name: `重新开始 ${game.name}` })).toBeEnabled({ timeout: 8000 });
+      const frame = page.frameLocator(`iframe[title="${game.frameTitle}"]`);
+      await expectFrameWithoutScrollbars(frame, `${game.name} at ${viewport.width}×${viewport.height}`);
+      await page.getByRole('button', { name: `关闭 ${game.name}` }).click();
+    }
+  }
+});
+
+test('leaderboard loads, degrades gracefully, and opens as a mobile sheet', async ({ page }) => {
+  const endpoint = 'http://scores.test/api/v1/leaderboards/merge-danbai?limit=10';
+  await page.route(endpoint, async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        cutoffScore: 8500,
+        entries: [
+          { rank: 1, nickname: '蛋白王', score: 56900, achievedAt: '2026-07-24T00:00:00.000Z' },
+          { rank: 2, nickname: 'Fifi', score: 42800, achievedAt: '2026-07-24T00:01:00.000Z' }
+        ]
+      })
+    });
+  });
+
+  const gameUrl = './games/merge-danbai/index.html?leaderboardApi=http%3A%2F%2Fscores.test';
+  await page.setViewportSize({ width: 900, height: 760 });
+  await page.goto(gameUrl);
+  await expect(page.getByRole('heading', { name: /全站最高分/ })).toBeVisible();
+  await expect(page.getByText('蛋白王')).toBeVisible();
+  await expect(page.getByText('Fifi')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= document.documentElement.clientHeight + 1)).toBe(true);
+  const statusBox = await page.locator('[data-status]').boundingBox();
+  expect(statusBox && statusBox.y + statusBox.height <= 760).toBe(true);
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(gameUrl);
+  await page.getByRole('button', { name: '排行榜' }).click();
+  await expect(page.locator('[data-leaderboard]')).toBeVisible();
+  await page.getByRole('button', { name: '关闭排行榜' }).click();
+  await expect(page.locator('[data-leaderboard]')).toBeHidden();
+
+  await page.unroute(endpoint);
+  await page.route(endpoint, (route) => route.abort());
+  await page.goto(gameUrl);
+  await page.getByRole('button', { name: '排行榜' }).click();
+  await expect(page.getByText('排行榜暂时休息，游戏仍然可以继续。')).toBeVisible();
+  await expect(page.getByRole('button', { name: '重试排行榜' })).toBeVisible();
+
+  await page.unroute(endpoint);
+  await page.route(endpoint, async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        cutoffScore: 0,
+        entries: [
+          { rank: 1, nickname: '重连蛋白', score: 100, achievedAt: '2026-07-24T00:00:00.000Z' }
+        ]
+      })
+    });
+  });
+  await page.getByRole('button', { name: '重试排行榜' }).click();
+  await expect(page.getByText('重连蛋白')).toBeVisible();
+});
+
+test('configured leaderboard origin is passed only to the merge frame', async ({ page }) => {
+  const apiBase = process.env.VITE_LEADERBOARD_API_BASE;
+  test.skip(!apiBase, 'This build-contract check requires VITE_LEADERBOARD_API_BASE.');
+  await page.route('**/api/v1/leaderboards/merge-danbai?limit=10', (route) => route.abort());
+  await page.goto('./');
+  await page.getByRole('button', { name: '合成大蛋白', exact: true }).click();
+  await expect(page.getByTitle('合成大蛋白 游戏区域')).toHaveAttribute(
+    'src',
+    `/${'fifi-tools/'}games/merge-danbai/index.html?leaderboardApi=${encodeURIComponent(apiBase)}`
+  );
+});
+
+test('local leaderboard end to end', async ({ page }) => {
+  const apiBase = process.env.VITE_LEADERBOARD_API_BASE;
+  test.skip(
+    process.env.RUN_LOCAL_LEADERBOARD_INTEGRATION !== '1' || apiBase !== 'http://127.0.0.1:8787',
+    'This test intentionally writes only to the local integration database.'
+  );
+
+  const submit = await page.request.post(`${apiBase}/api/v1/leaderboards/merge-danbai/scores`, {
+    headers: { Origin: 'http://127.0.0.1:5173' },
+    data: { nickname: '联调蛋白', score: 1234 }
+  });
+  expect(submit.ok()).toBe(true);
+
+  await page.goto('./');
+  await page.getByRole('button', { name: '合成大蛋白', exact: true }).click();
+  const frame = page.frameLocator('iframe[title="合成大蛋白 游戏区域"]');
+  await expect(frame.getByText('联调蛋白')).toBeVisible();
 });

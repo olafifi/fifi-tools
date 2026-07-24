@@ -1,4 +1,4 @@
-export type GameCommand = 'pause' | 'resume' | 'restart' | 'destroy';
+export type GameCommand = 'pause' | 'resume' | 'restart' | 'focus' | 'destroy';
 
 export function postGameCommand(
   frame: HTMLIFrameElement | null,
