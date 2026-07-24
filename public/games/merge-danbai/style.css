@@ -1,0 +1,14 @@
+body { display: grid; place-items: start center; background: #fff1f7; }
+.merge-shell { width: min(100%, 440px); }
+.merge-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 9px; }
+.merge-head > div:first-child { display: flex; flex-direction: column; gap: 2px; font-weight: 900; }
+.merge-head strong { color: #5c5cf0; font-size: 0.82rem; }
+.next { display: flex; align-items: center; gap: 8px; padding: 4px 10px; border: 2px solid #292641; border-radius: 10px; background: white; }
+.next small { font-weight: 900; }
+.next img { width: 42px; height: 42px; object-fit: contain; }
+.merge-stage { position: relative; width: 100%; aspect-ratio: 420 / 520; overflow: hidden; border: 3px solid #292641; border-radius: 14px; background: #fff9df; cursor: crosshair; touch-action: none; }
+.merge-stage canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
+.loss-line { position: absolute; z-index: 2; top: 19%; left: 0; right: 0; border-top: 2px dashed rgba(214, 50, 111, 0.62); pointer-events: none; }
+.loss-line span { float: right; margin: -20px 6px 0 0; color: #b51f5d; font-size: 0.66rem; font-weight: 900; }
+.aim-piece { position: absolute; z-index: 3; top: 7px; height: auto; max-width: 100px; object-fit: contain; transform: translateX(-50%); pointer-events: none; filter: drop-shadow(0 4px 4px rgba(41,38,65,.16)); }
+.merge-shell > p { min-height: 1.5em; margin: 10px 0 0; color: #625e76; text-align: center; font-size: 0.78rem; }

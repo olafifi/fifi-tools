@@ -1,0 +1,112 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
+import { GameStation } from './GameStation';
+import { HomePage } from './HomePage';
+
+describe('HomePage', () => {
+  it('shows both production tools and five games', () => {
+    render(<HomePage />);
+
+    expect(screen.getByRole('link', { name: /FIFI 图片处理/ })).toHaveAttribute(
+      'href',
+      'https://olafifi.github.io/ui-image-processor/'
+    );
+    expect(screen.getByRole('link', { name: /FIFI-Richly/ })).toHaveAttribute(
+      'href',
+      'https://olafifi.github.io/rich-text-translator/'
+    );
+    for (const name of ['2048', '数独', '俄罗斯方块', '贪吃蛇', '合成大蛋白']) {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument();
+    }
+    expect(screen.queryByText('三消')).not.toBeInTheDocument();
+  });
+
+  it('passes the selected game to the host', async () => {
+    const onOpenGame = vi.fn();
+    render(<GameStation onOpenGame={onOpenGame} />);
+
+    await userEvent.click(screen.getByRole('button', { name: '合成大蛋白' }));
+    expect(onOpenGame).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'merge-danbai' })
+    );
+  });
+
+  it('opens one labelled game dialog and restores focus on close', async () => {
+    render(<HomePage />);
+    const trigger = screen.getByRole('button', { name: '2048' });
+
+    await userEvent.click(trigger);
+
+    expect(screen.getByRole('dialog', { name: '2048' })).toBeInTheDocument();
+    expect(screen.getByTitle('2048 游戏区域')).toHaveAttribute(
+      'src',
+      '/games/2048/index.html'
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: '关闭 2048' }));
+
+    expect(screen.queryByRole('dialog', { name: '2048' })).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it('waits for the selected game to be ready before enabling restart', async () => {
+    render(<HomePage />);
+    await userEvent.click(screen.getByRole('button', { name: '2048' }));
+
+    const frame = screen.getByTitle('2048 游戏区域') as HTMLIFrameElement;
+    const restart = screen.getByRole('button', { name: '重新开始 2048' });
+    expect(restart).toBeDisabled();
+
+    act(() => {
+      window.dispatchEvent(new MessageEvent('message', {
+        data: { source: 'fifi-game', type: 'ready', gameId: '2048' },
+        origin: window.location.origin,
+        source: frame.contentWindow
+      }));
+    });
+
+    expect(restart).toBeEnabled();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('shows a useful retry action when a game cannot load', () => {
+    vi.useFakeTimers();
+    try {
+      render(<HomePage />);
+      fireEvent.click(screen.getByRole('button', { name: '2048' }));
+
+      act(() => vi.advanceTimersByTime(8000));
+
+      expect(screen.getByRole('alert')).toHaveTextContent('游戏没有成功加载');
+      fireEvent.click(screen.getByRole('button', { name: '重新加载 2048' }));
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '重新开始 2048' })).toBeDisabled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('starts a fresh loading session when the same game is reopened', async () => {
+    render(<HomePage />);
+    const trigger = screen.getByRole('button', { name: '2048' });
+    await userEvent.click(trigger);
+
+    const firstFrame = screen.getByTitle('2048 游戏区域') as HTMLIFrameElement;
+    act(() => {
+      window.dispatchEvent(new MessageEvent('message', {
+        data: { source: 'fifi-game', type: 'ready', gameId: '2048' },
+        origin: window.location.origin,
+        source: firstFrame.contentWindow
+      }));
+    });
+    expect(screen.getByRole('button', { name: '重新开始 2048' })).toBeEnabled();
+
+    await userEvent.click(screen.getByRole('button', { name: '关闭 2048' }));
+    await userEvent.click(trigger);
+
+    expect(screen.getByRole('button', { name: '重新开始 2048' })).toBeDisabled();
+    expect(screen.getByRole('status')).toHaveTextContent('蛋白正在准备游戏');
+  });
+});

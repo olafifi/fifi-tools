@@ -1,0 +1,9 @@
+body { display: grid; place-items: start center; background: #eefbd3; }
+.snake-shell { width: min(100%, 430px); text-align: center; }
+.score-line { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #312c68; font-weight: 900; }
+.score-line strong { padding: 7px 10px; border: 2px solid #292641; border-radius: 8px; background: white; font-size: 0.8rem; }
+canvas { display: block; width: 100%; height: auto; border: 3px solid #292641; border-radius: 12px; background: white; }
+.snake-controls { display: grid; grid-template-columns: repeat(3, 56px); grid-template-areas: ". up ." "left down right"; justify-content: center; gap: 7px; margin-top: 13px; }
+.snake-controls button { min-height: 48px; border: 2px solid #292641; border-radius: 10px; background: #ffe268; font-size: 1.2rem; font-weight: 900; box-shadow: 2px 2px 0 #292641; }
+[data-direction-button="up"] { grid-area: up; } [data-direction-button="left"] { grid-area: left; } [data-direction-button="down"] { grid-area: down; } [data-direction-button="right"] { grid-area: right; }
+p { min-height: 1.5em; margin: 12px 0 0; color: #625e76; font-size: 0.8rem; }

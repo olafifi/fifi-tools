@@ -1,0 +1,17 @@
+:root {
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  color: #292641;
+  background: #f7f6f1;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { margin: 0; padding: 16px; overflow-x: hidden; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 4px solid #18a999; outline-offset: 2px; }
+[data-touch-control] { touch-action: manipulation; user-select: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
