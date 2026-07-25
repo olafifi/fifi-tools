@@ -24,6 +24,7 @@ button, a, input { font: inherit; }
 a { color: inherit; text-decoration: none; }
 button { color: inherit; }
 img { display: block; max-width: 100%; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 .site-shell { position: fixed; inset: 0; min-height: 720px; overflow: hidden; background: var(--ink); }
 .interactive-field { position: fixed; z-index: 0; inset: 0; width: 100%; height: 100%; }
@@ -84,17 +85,43 @@ img { display: block; max-width: 100%; }
 .lab-clock {
   position: fixed;
   z-index: 9;
-  top: 108px;
-  right: clamp(48px, 5.5vw, 92px);
-  width: min(520px, 40vw);
+  top: 102px;
+  left: 52vw;
+  width: 45vw;
   padding: 0;
   color: var(--bone);
-  text-align: right;
+  text-align: center;
   pointer-events: none;
 }
-.lab-clock__tag { display: block; margin: 0 4px 6px 0; color: var(--gold); font-size: 11px; font-weight: 1000; letter-spacing: .2em; text-shadow: 2px 2px 0 var(--black); }
-.lab-clock__time { display: block; font-family: "Arial Black", Impact, Inter, sans-serif; font-size: clamp(66px, 6.6vw, 102px); font-variant-numeric: tabular-nums; font-weight: 1000; letter-spacing: -.045em; line-height: .88; text-shadow: 4px 5px 0 var(--black); }
-.lab-clock__date { display: inline-block; margin-top: 17px; padding-top: 8px; border-top: 3px solid var(--gold); font-size: clamp(17px, 1.5vw, 22px); font-weight: 1000; letter-spacing: .03em; line-height: 1.2; text-shadow: 2px 2px 0 var(--black); }
+.lab-clock__tag { display: block; margin: 0 0 8px; color: var(--gold); font-size: 11px; font-weight: 1000; letter-spacing: .2em; text-shadow: 2px 2px 0 var(--black); }
+.lab-clock__time { display: block; }
+.lab-clock__display { --digit-width: clamp(24px, 5vw, 72px); --digit-height: clamp(40px, 7.35vw, 106px); --segment-size: clamp(5px, .72vw, 10px); display: flex; align-items: center; justify-content: center; gap: clamp(3px, .55vw, 8px); filter: drop-shadow(4px 5px 0 var(--black)); }
+.lab-clock__digit { position: relative; flex: 0 0 var(--digit-width); width: var(--digit-width); height: var(--digit-height); }
+.lab-clock__digit .segment { position: absolute; display: block; opacity: .13; background: var(--bone); }
+.lab-clock__digit .segment--a, .lab-clock__digit .segment--d, .lab-clock__digit .segment--g { left: calc(var(--segment-size) * .72); width: calc(100% - var(--segment-size) * 1.44); height: var(--segment-size); clip-path: polygon(9% 0,91% 0,100% 50%,91% 100%,9% 100%,0 50%); }
+.lab-clock__digit .segment--a { top: 0; }
+.lab-clock__digit .segment--g { top: calc(50% - var(--segment-size) / 2); }
+.lab-clock__digit .segment--d { bottom: 0; }
+.lab-clock__digit .segment--b, .lab-clock__digit .segment--c, .lab-clock__digit .segment--e, .lab-clock__digit .segment--f { width: var(--segment-size); height: calc(50% - var(--segment-size) * .85); clip-path: polygon(50% 0,100% 9%,100% 91%,50% 100%,0 91%,0 9%); }
+.lab-clock__digit .segment--b { top: calc(var(--segment-size) * .42); right: 0; }
+.lab-clock__digit .segment--c { right: 0; bottom: calc(var(--segment-size) * .42); }
+.lab-clock__digit .segment--e { left: 0; bottom: calc(var(--segment-size) * .42); }
+.lab-clock__digit .segment--f { top: calc(var(--segment-size) * .42); left: 0; }
+.digit-0 .segment--a, .digit-0 .segment--b, .digit-0 .segment--c, .digit-0 .segment--d, .digit-0 .segment--e, .digit-0 .segment--f,
+.digit-1 .segment--b, .digit-1 .segment--c,
+.digit-2 .segment--a, .digit-2 .segment--b, .digit-2 .segment--d, .digit-2 .segment--e, .digit-2 .segment--g,
+.digit-3 .segment--a, .digit-3 .segment--b, .digit-3 .segment--c, .digit-3 .segment--d, .digit-3 .segment--g,
+.digit-4 .segment--b, .digit-4 .segment--c, .digit-4 .segment--f, .digit-4 .segment--g,
+.digit-5 .segment--a, .digit-5 .segment--c, .digit-5 .segment--d, .digit-5 .segment--f, .digit-5 .segment--g,
+.digit-6 .segment--a, .digit-6 .segment--c, .digit-6 .segment--d, .digit-6 .segment--e, .digit-6 .segment--f, .digit-6 .segment--g,
+.digit-7 .segment--a, .digit-7 .segment--b, .digit-7 .segment--c,
+.digit-8 .segment,
+.digit-9 .segment--a, .digit-9 .segment--b, .digit-9 .segment--c, .digit-9 .segment--d, .digit-9 .segment--f, .digit-9 .segment--g { opacity: 1; }
+.lab-clock__colon { position: relative; flex: 0 0 clamp(10px, 1.4vw, 20px); height: var(--digit-height, clamp(40px, 7.35vw, 106px)); }
+.lab-clock__colon::before, .lab-clock__colon::after { content: ""; position: absolute; left: 50%; width: clamp(5px, .7vw, 10px); height: clamp(5px, .7vw, 10px); background: var(--bone); box-shadow: 3px 3px 0 var(--black); transform: translateX(-50%); }
+.lab-clock__colon::before { top: 27%; }
+.lab-clock__colon::after { bottom: 27%; }
+.lab-clock__date { display: inline-block; margin-top: 16px; padding-top: 8px; border-top: 3px solid var(--gold); font-size: clamp(17px, 1.5vw, 22px); font-weight: 1000; letter-spacing: .03em; line-height: 1.2; text-shadow: 2px 2px 0 var(--black); }
 
 .fifi-workspace { position: relative; z-index: 4; min-height: 100%; }
 .tool-cluster { position: fixed; z-index: 8; left: 14vw; top: 17vh; width: min(620px, 48vw); }
@@ -285,8 +312,8 @@ img { display: block; max-width: 100%; }
   .site-shell { position: relative; min-height: 1360px; overflow: hidden; }
   .fifi-topbar { position: absolute; left: 28px; right: 28px; }
   .fifi-meta { display: none; }
-  .lab-clock { position: absolute; top: 865px; right: 28px; width: calc(100% - 160px); }
-  .lab-clock__time { font-size: clamp(42px, 11vw, 58px); }
+  .lab-clock { position: absolute; top: 865px; left: 132px; width: calc(100% - 160px); }
+  .lab-clock__display { --digit-width: 24px; --digit-height: 40px; --segment-size: 5px; gap: 3px; }
   .lab-clock__date { font-size: 14px; }
   .game-station { position: absolute; left: 18px; top: 112px; width: 96px; height: 620px; }
   .station-head h2 { font-size: 19px; }
@@ -307,8 +334,7 @@ img { display: block; max-width: 100%; }
   .fifi-frame { inset: 9px; border-radius: 24px; }
   .fifi-topbar { left: 24px; right: 24px; top: 20px; }
   .fifi-brand span { font-size: 14px; }
-  .lab-clock { top: 842px; right: 24px; width: calc(100% - 146px); min-width: 205px; }
-  .lab-clock__time { font-size: 42px; }
+  .lab-clock { top: 842px; left: 122px; width: calc(100% - 146px); min-width: 205px; }
   .lab-clock__date { margin-top: 12px; font-size: 13px; }
   .game-station { left: 20px; top: 94px; width: 88px; height: 610px; }
   .game-icon { width: 39px; height: 39px; }

@@ -11,6 +11,7 @@ describe('LabClock', () => {
     render(<LabClock />);
 
     expect(screen.getByLabelText('本地时间')).toHaveTextContent('14:08:09');
+    expect(screen.getAllByTestId('clock-digit')).toHaveLength(6);
     expect(screen.getByLabelText('今天日期')).toHaveTextContent('2026年7月26日 · 星期日');
 
     act(() => vi.advanceTimersByTime(750));
