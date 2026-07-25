@@ -5,8 +5,11 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.actuator       = new Actuator;
 
   this.startTiles     = 2;
+  this.motionActive   = false;
+  this.moveQueue      = [];
+  this.maxQueuedMoves = 3;
 
-  this.inputManager.on("move", this.move.bind(this));
+  this.inputManager.on("move", this.requestMove.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
 
@@ -15,6 +18,7 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
 
 // Restart the game
 GameManager.prototype.restart = function () {
+  this.resetMotion();
   this.storageManager.clearGameState();
   this.actuator.continueGame(); // Clear the game won/lost message
   this.setup();
@@ -22,6 +26,7 @@ GameManager.prototype.restart = function () {
 
 // Keep playing after winning (allows going over 2048)
 GameManager.prototype.keepPlaying = function () {
+  this.resetMotion();
   this.keepPlaying = true;
   this.actuator.continueGame(); // Clear the game won/lost message
 };
@@ -76,7 +81,7 @@ GameManager.prototype.addRandomTile = function () {
 };
 
 // Sends the updated grid to the actuator
-GameManager.prototype.actuate = function () {
+GameManager.prototype.actuate = function (onMotionComplete) {
   if (this.storageManager.getBestScore() < this.score) {
     this.storageManager.setBestScore(this.score);
   }
@@ -94,8 +99,55 @@ GameManager.prototype.actuate = function () {
     won:        this.won,
     bestScore:  this.storageManager.getBestScore(),
     terminated: this.isGameTerminated()
-  });
+  }, onMotionComplete);
 
+};
+
+GameManager.prototype.requestMove = function (command) {
+  var normalized = typeof command === "number"
+    ? { direction: command, repeat: false, source: "keyboard" }
+    : command;
+
+  if (this.motionActive) {
+    this.enqueueMove(normalized);
+    return;
+  }
+
+  this.startMove(normalized.direction);
+};
+
+GameManager.prototype.enqueueMove = function (command) {
+  if (this.moveQueue.length >= this.maxQueuedMoves) return;
+
+  var lastDirection = this.moveQueue[this.moveQueue.length - 1];
+  if (command.repeat && lastDirection === command.direction) return;
+
+  this.moveQueue.push(command.direction);
+};
+
+GameManager.prototype.startMove = function (direction) {
+  if (!this.move(direction)) return false;
+
+  this.motionActive = true;
+  this.actuate(this.finishMove.bind(this));
+  return true;
+};
+
+GameManager.prototype.finishMove = function () {
+  this.motionActive = false;
+
+  while (this.moveQueue.length) {
+    if (this.startMove(this.moveQueue.shift())) return;
+  }
+};
+
+GameManager.prototype.resetMotion = function () {
+  this.motionActive = false;
+  this.moveQueue = [];
+
+  if (this.actuator.cancelMotion) {
+    this.actuator.cancelMotion();
+  }
 };
 
 // Represent the current game as an object
@@ -131,7 +183,7 @@ GameManager.prototype.move = function (direction) {
   // 0: up, 1: right, 2: down, 3: left
   var self = this;
 
-  if (this.isGameTerminated()) return; // Don't do anything if the game's over
+  if (this.isGameTerminated()) return false; // Don't do anything if the game's over
 
   var cell, tile;
 
@@ -186,8 +238,10 @@ GameManager.prototype.move = function (direction) {
       this.over = true; // Game over!
     }
 
-    this.actuate();
+    return true;
   }
+
+  return false;
 };
 
 // Get the vector representing the chosen direction

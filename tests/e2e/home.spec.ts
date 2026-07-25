@@ -91,7 +91,7 @@ test('all five games become ready, respond, restart, and close inline', async ({
 
     if (game.name === '2048') {
       await expect(frame.locator('.tile')).toHaveCount(2);
-      await expect(frame.locator('.tile').first()).toHaveCSS('transition-duration', '0.17s');
+      await expect(frame.locator('.tile').first()).toHaveCSS('transition-duration', '0.24s');
       await expect(frame.locator('.game-container')).toHaveCSS('width', '500px');
     } else if (game.name === '数独') {
       await expect(frame.getByRole('gridcell')).toHaveCount(81);

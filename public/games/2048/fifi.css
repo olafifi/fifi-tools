@@ -1,5 +1,7 @@
 :root {
-  --tile-move-duration: 170ms;
+  --tile-slide-duration: 240ms;
+  --tile-result-duration: 120ms;
+  --tile-result-delay: 240ms;
   --berry-ink: #514866;
   --berry-board: #5b4f7b;
   --berry-cell: #756a92;
@@ -89,7 +91,15 @@ h1.title, .scores-container { float: none; }
 .restart-button, .keep-playing-button, .retry-button { border: 0; }
 .game-container { margin-top: 14px; background: var(--berry-board); }
 .grid-cell { background: var(--berry-cell); }
-.tile { transition: transform var(--tile-move-duration) cubic-bezier(.22,.61,.36,1); }
+.tile {
+  transition: transform var(--tile-slide-duration) cubic-bezier(.2,.72,.28,1);
+  will-change: transform;
+}
+.tile-result-staged .tile-inner {
+  animation-delay: var(--tile-result-delay);
+  animation-duration: var(--tile-result-duration);
+  animation-fill-mode: backwards;
+}
 .tile.tile-2 .tile-inner { color: #514866; background: #f1dce8; }
 .tile.tile-4 .tile-inner { color: #514866; background: #e8c4d6; }
 .tile.tile-8 .tile-inner { color: #493e61; background: #f3c998; }
@@ -130,5 +140,13 @@ h1.title, .scores-container { float: none; }
   .above-game { align-items: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tile { transition-duration: 0ms; }
+  :root {
+    --tile-slide-duration: 0ms;
+    --tile-result-duration: 0ms;
+    --tile-result-delay: 0ms;
+  }
+  .tile-result-staged .tile-inner {
+    animation-delay: 0ms;
+    animation-duration: 0ms;
+  }
 }

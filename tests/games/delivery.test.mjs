@@ -37,7 +37,7 @@ test('2048 does not request the missing Clear Sans stylesheet', async () => {
 
 test('2048 uses the approved berry-soda motion and palette', async () => {
   const theme = await readFile('public/games/2048/fifi.css', 'utf8');
-  assert.match(theme, /--tile-move-duration:\s*170ms/);
+  assert.match(theme, /--tile-slide-duration:\s*240ms/);
   assert.match(theme, /\.tile\.tile-2048/);
   assert.match(theme, /#6e5a9b/i);
 });

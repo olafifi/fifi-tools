@@ -3,20 +3,32 @@ function HTMLActuator() {
   this.scoreContainer   = document.querySelector(".score-container");
   this.bestContainer    = document.querySelector(".best-container");
   this.messageContainer = document.querySelector(".game-message");
+  this.gameContainer    = document.querySelector(".game-container");
 
-  this.score = 0;
+  this.score            = 0;
+  this.motionTimers     = [];
+  this.motionGeneration = 0;
 }
 
-HTMLActuator.prototype.actuate = function (grid, metadata) {
+HTMLActuator.prototype.actuate = function (grid, metadata, onMotionComplete) {
   var self = this;
+  var animated = typeof onMotionComplete === "function";
+  this.clearMotionTimers();
+  var generation = ++this.motionGeneration;
 
   window.requestAnimationFrame(function () {
+    if (generation !== self.motionGeneration) return;
+
+    self.gameContainer.setAttribute(
+      "data-motion-phase",
+      animated ? "sliding" : "settled"
+    );
     self.clearContainer(self.tileContainer);
 
     grid.cells.forEach(function (column) {
       column.forEach(function (cell) {
         if (cell) {
-          self.addTile(cell);
+          self.addTile(cell, animated);
         }
       });
     });
@@ -32,7 +44,45 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
       }
     }
 
+    if (!animated) return;
+
+    var durations = self.motionDurations();
+    window.requestAnimationFrame(function () {
+      if (generation !== self.motionGeneration) return;
+
+      self.motionTimers.push(window.setTimeout(function () {
+        if (generation !== self.motionGeneration) return;
+        self.gameContainer.setAttribute("data-motion-phase", "resolving");
+      }, durations.slide));
+
+      self.motionTimers.push(window.setTimeout(function () {
+        if (generation !== self.motionGeneration) return;
+        self.gameContainer.setAttribute("data-motion-phase", "settled");
+        self.motionTimers = [];
+        onMotionComplete();
+      }, durations.slide + durations.result));
+    });
   });
+};
+
+HTMLActuator.prototype.clearMotionTimers = function () {
+  this.motionTimers.forEach(function (timer) {
+    window.clearTimeout(timer);
+  });
+  this.motionTimers = [];
+};
+
+HTMLActuator.prototype.cancelMotion = function () {
+  this.motionGeneration += 1;
+  this.clearMotionTimers();
+  this.gameContainer.setAttribute("data-motion-phase", "settled");
+};
+
+HTMLActuator.prototype.motionDurations = function () {
+  var reduced = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  return reduced ? { slide: 0, result: 0 } : { slide: 240, result: 120 };
 };
 
 // Continues the game (both restart and keep playing)
@@ -46,7 +96,7 @@ HTMLActuator.prototype.clearContainer = function (container) {
   }
 };
 
-HTMLActuator.prototype.addTile = function (tile) {
+HTMLActuator.prototype.addTile = function (tile, staged) {
   var self = this;
 
   var wrapper   = document.createElement("div");
@@ -72,14 +122,16 @@ HTMLActuator.prototype.addTile = function (tile) {
     });
   } else if (tile.mergedFrom) {
     classes.push("tile-merged");
+    if (staged) classes.push("tile-result-staged");
     this.applyClasses(wrapper, classes);
 
     // Render the tiles that merged
     tile.mergedFrom.forEach(function (merged) {
-      self.addTile(merged);
+      self.addTile(merged, false);
     });
   } else {
     classes.push("tile-new");
+    if (staged) classes.push("tile-result-staged");
     this.applyClasses(wrapper, classes);
   }
 
