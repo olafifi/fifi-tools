@@ -68,12 +68,46 @@ test('desktop home uses the viewport and keeps the game station on the left', as
   }
 });
 
+test('clock uses local 24-hour time and the zipper clips todo content', async ({ page }) => {
+  await page.clock.install({ time: new Date(2026, 6, 26, 14, 8, 9) });
+  await page.goto('./');
+
+  await expect(page.getByLabel('本地时间')).toHaveText('14:08:09');
+  await expect(page.getByLabel('今天日期')).toHaveText('2026年7月26日 · 星期日');
+
+  const tasks = page.locator('.todo-tasks');
+  await page.getByRole('button', { name: '拉开 To-Do List' }).click();
+  await expect(tasks).toHaveCSS('clip-path', /url\(.+todo-content-clip.+\)/);
+  await expect(page.getByRole('textbox', { name: '待办内容' }).first()).toHaveValue('今天要做什么呢？');
+
+  const openPath = await page.locator('#todo-content-clip path').getAttribute('d');
+  await page.getByRole('button', { name: '收回 To-Do List' }).click();
+  await page.waitForTimeout(280);
+  const closingPath = await page.locator('#todo-content-clip path').getAttribute('d');
+  expect(closingPath).not.toBe(openPath);
+});
+
+test('tool transition shows a real URL, redirects approved tools, and rejects unknown ids', async ({ page }) => {
+  await page.route('https://olafifi.github.io/ui-image-processor/', async (route) => {
+    await route.fulfill({ contentType: 'text/html', body: '<title>FiFi Image Tool</title><h1>tool ready</h1>' });
+  });
+
+  await page.goto('./open-tool.html?tool=image-processor');
+  await expect(page).toHaveURL(/open-tool\.html\?tool=image-processor/);
+  await expect(page.getByText('蛋白正在穿过实验通道')).toBeVisible();
+  await expect(page).toHaveURL('https://olafifi.github.io/ui-image-processor/', { timeout: 4000 });
+
+  await page.goto('./open-tool.html?tool=not-allowed');
+  await expect(page.getByRole('alert')).toContainText('这条实验通道不存在');
+  await expect(page.getByRole('link', { name: '返回 FIFI Lab' })).toBeVisible();
+});
+
 const games = [
-  { name: '2048', frameTitle: '2048 游戏区域', selector: '.game-container' },
-  { name: '数独', frameTitle: '数独 游戏区域', selector: '[role="grid"]' },
-  { name: '俄罗斯方块', frameTitle: '俄罗斯方块 游戏区域', selector: 'canvas' },
-  { name: '贪吃蛇', frameTitle: '贪吃蛇 游戏区域', selector: '[data-snake-board]' },
-  { name: '合成大蛋白', frameTitle: '合成大蛋白 游戏区域', selector: '[data-merge-stage]' }
+  { name: '2048', frameTitle: '2048 游戏区域', selector: '.game-container', theme: 'berry' },
+  { name: '数独', frameTitle: '数独 游戏区域', selector: '[role="grid"]', theme: 'jade' },
+  { name: '俄罗斯方块', frameTitle: '俄罗斯方块 游戏区域', selector: 'canvas', theme: 'gold' },
+  { name: '贪吃蛇', frameTitle: '贪吃蛇 游戏区域', selector: '[data-snake-board]', theme: 'brick' },
+  { name: '合成大蛋白', frameTitle: '合成大蛋白 游戏区域', selector: '[data-merge-stage]', theme: 'plum' }
 ] as const;
 
 test('all five games become ready, respond, restart, and close inline', async ({ page }) => {
@@ -83,11 +117,13 @@ test('all five games become ready, respond, restart, and close inline', async ({
   for (const game of games) {
     await page.getByRole('button', { name: game.name, exact: true }).click();
     await expect(page.getByRole('dialog', { name: game.name })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: game.name })).toHaveAttribute('data-game-theme', game.theme);
 
     const restart = page.getByRole('button', { name: `重新开始 ${game.name}` });
     await expect(restart).toBeEnabled({ timeout: 8000 });
     const frame = page.frameLocator(`iframe[title="${game.frameTitle}"]`);
     await expect(frame.locator(game.selector)).toBeVisible();
+    expect(await frame.locator('html').evaluate((root) => getComputedStyle(root).getPropertyValue('--fifi-ink').trim())).toBe('#171411');
 
     if (game.name === '2048') {
       await expect(frame.locator('.tile')).toHaveCount(2);
@@ -101,6 +137,11 @@ test('all five games become ready, respond, restart, and close inline', async ({
     } else if (game.name === '贪吃蛇') {
       const shell = frame.locator('.snake-shell');
       await expect(shell).toBeFocused();
+      const controlsFit = await frame.locator('.snake-controls').evaluate((controls) => {
+        const box = controls.getBoundingClientRect();
+        return box.bottom <= window.innerHeight + 1;
+      });
+      expect(controlsFit).toBe(true);
       await page.keyboard.press('ArrowUp');
       await expect(shell).toHaveAttribute('data-direction', 'up');
 
@@ -472,7 +513,7 @@ test('configured leaderboard origin is passed only to the merge frame', async ({
   await page.getByRole('button', { name: '合成大蛋白', exact: true }).click();
   await expect(page.getByTitle('合成大蛋白 游戏区域')).toHaveAttribute(
     'src',
-    `/${'fifi-tools/'}games/merge-danbai/index.html?leaderboardApi=${encodeURIComponent(apiBase)}`
+    `/${'fifi-tools/'}games/merge-danbai/index.html?v=20260726-enamel-theme&leaderboardApi=${encodeURIComponent(apiBase)}`
   );
 });
 
