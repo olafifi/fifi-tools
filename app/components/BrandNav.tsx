@@ -5,7 +5,6 @@ export function BrandNav() {
         <i aria-hidden="true">F</i>
         <span>FIFI Lab</span>
       </a>
-      <div className="fifi-meta">TOOLS · PLAY · SMALL EXPERIMENTS</div>
     </header>
   );
 }

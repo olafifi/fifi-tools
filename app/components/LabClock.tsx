@@ -30,7 +30,6 @@ export function LabClock() {
   const { time, isoDate, dateLabel } = clockParts(now);
   return (
     <section className="lab-clock" aria-label="FIFI Lab 数字时钟">
-      <span className="lab-clock__tag" aria-hidden="true">LOCAL / 24H</span>
       <time aria-label="本地时间" className="lab-clock__time" dateTime={time}>
         <span className="visually-hidden">{time}</span>
         <span className="lab-clock__display" aria-hidden="true">

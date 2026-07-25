@@ -80,7 +80,6 @@ img { display: block; max-width: 100%; }
   font-size: 15px;
   white-space: nowrap;
 }
-.fifi-meta { color: var(--gold); font-size: 9px; font-weight: 900; letter-spacing: .13em; }
 
 .lab-clock {
   position: fixed;
@@ -93,7 +92,6 @@ img { display: block; max-width: 100%; }
   text-align: center;
   pointer-events: none;
 }
-.lab-clock__tag { display: block; margin: 0 0 8px; color: var(--gold); font-size: 11px; font-weight: 1000; letter-spacing: .2em; text-shadow: 2px 2px 0 var(--black); }
 .lab-clock__time { display: block; }
 .lab-clock__display { --digit-width: clamp(24px, 5vw, 72px); --digit-height: clamp(40px, 7.35vw, 106px); --segment-size: clamp(5px, .72vw, 10px); display: flex; align-items: center; justify-content: center; gap: clamp(3px, .55vw, 8px); filter: drop-shadow(4px 5px 0 var(--black)); }
 .lab-clock__digit { position: relative; flex: 0 0 var(--digit-width); width: var(--digit-width); height: var(--digit-height); }
@@ -311,7 +309,6 @@ img { display: block; max-width: 100%; }
   body { overflow-y: auto; }
   .site-shell { position: relative; min-height: 1360px; overflow: hidden; }
   .fifi-topbar { position: absolute; left: 28px; right: 28px; }
-  .fifi-meta { display: none; }
   .lab-clock { position: absolute; top: 865px; left: 132px; width: calc(100% - 160px); }
   .lab-clock__display { --digit-width: 24px; --digit-height: 40px; --segment-size: 5px; gap: 3px; }
   .lab-clock__date { font-size: 14px; }
