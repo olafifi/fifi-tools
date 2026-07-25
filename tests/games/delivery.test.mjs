@@ -50,3 +50,11 @@ test('merge Danbai exposes drop guidance and local game-over controls', async ()
   assert.match(mergeHtml, /data-local-restart/);
   assert.match(mergeHtml, /data-retry-leaderboard/);
 });
+
+test('merge Danbai aim preview uses the exact tier fill', async () => {
+  const stylesheet = await readFile('public/games/merge-danbai/style.css', 'utf8');
+  const aimRule = stylesheet.match(/\.aim-bubble\s*\{[^}]*\}/s)?.[0] ?? '';
+
+  assert.match(aimRule, /background:\s*var\(--bubble-fill\)/);
+  assert.doesNotMatch(aimRule, /color-mix|transparent/);
+});
