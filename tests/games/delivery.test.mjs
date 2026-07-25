@@ -15,6 +15,13 @@ test('tool transition resolves only the two approved destinations', () => {
   assert.equal(resolveTool('https://evil.example'), null);
 });
 
+test('tool delivery ticket keeps the approved two-line wording intact', async () => {
+  const page = await readFile('public/open-tool.html', 'utf8');
+  assert.match(page, /delivery-ticket__tool">工具</);
+  assert.match(page, /delivery-ticket__arrived">已送达/);
+  assert.match(page, /delivery-ticket__check">✓</);
+});
+
 test('GitHub Pages workflow builds, tests, and deploys dist', async () => {
   const workflow = await readFile('.github/workflows/deploy.yml', 'utf8');
 

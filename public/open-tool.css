@@ -41,10 +41,12 @@ a { color: inherit; }
 .cat-leg--right { transform-origin: 76px 96px; animation: leg-kick .18s ease-in-out 7 alternate-reverse; }
 .cat-tail { transform-origin: 29px 76px; animation: tail-swish .26s ease-in-out 5 alternate; }
 
-.delivery-ticket { position: absolute; z-index: 7; right: clamp(30px, 8vw, 120px); top: 50%; display: grid; grid-template-columns: 1fr auto; gap: 7px; width: 118px; padding: 12px; border: 3px solid var(--black); border-radius: 9px 22px 9px 9px; background: var(--bone); color: var(--ink); box-shadow: 6px 6px 0 var(--black); transform: translateY(-50%) rotate(7deg) scale(0); animation: ticket-arrive 1.5s both; }
-.delivery-ticket small { grid-column: 1 / -1; color: var(--red); font-size: 8px; font-weight: 1000; letter-spacing: .15em; }
-.delivery-ticket strong { font-size: 18px; line-height: 1.05; }
-.delivery-ticket i { display: grid; place-items: center; width: 32px; height: 32px; border: 2px solid var(--black); border-radius: 50%; background: var(--gold); font-style: normal; font-weight: 1000; }
+.delivery-ticket { position: absolute; z-index: 7; right: clamp(30px, 8vw, 120px); top: 50%; width: 150px; padding: 12px 13px 14px; border: 3px solid var(--black); border-radius: 9px 24px 9px 9px; background: var(--bone); color: var(--ink); box-shadow: 6px 6px 0 var(--black); transform: translateY(-50%) rotate(7deg) scale(0); animation: ticket-arrive 1.5s both; }
+.delivery-ticket small { display: block; margin-bottom: 7px; padding-bottom: 5px; border-bottom: 2px solid var(--red); color: var(--red); font-size: 8px; font-weight: 1000; letter-spacing: .15em; }
+.delivery-ticket strong { display: grid; gap: 4px; font-size: 20px; line-height: 1; white-space: nowrap; }
+.delivery-ticket__tool { display: block; }
+.delivery-ticket__arrived { display: flex; align-items: center; justify-content: space-between; gap: 7px; }
+.delivery-ticket__check { display: inline-grid; flex: 0 0 auto; place-items: center; width: 30px; height: 30px; border: 2px solid var(--black); border-radius: 50%; background: var(--gold); font-style: normal; font-size: 17px; font-weight: 1000; }
 
 .portal-copy { position: absolute; z-index: 9; left: 22px; bottom: 26px; display: grid; gap: 3px; }
 .portal-copy strong { font-size: clamp(15px, 2vw, 21px); }
@@ -83,7 +85,8 @@ html[data-state="error"] .portal-error { align-self: center; justify-self: cente
   .portal--entry { left: 13px; }
   .portal--exit { right: 13px; }
   .portal-cat { width: 88px; }
-  .delivery-ticket { right: 24px; width: 104px; }
+  .delivery-ticket { right: 20px; width: 134px; padding-inline: 10px; }
+  .delivery-ticket strong { font-size: 18px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
