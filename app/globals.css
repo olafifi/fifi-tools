@@ -81,6 +81,25 @@ img { display: block; max-width: 100%; }
 }
 .fifi-meta { color: var(--gold); font-size: 9px; font-weight: 900; letter-spacing: .13em; }
 
+.lab-clock {
+  position: fixed;
+  z-index: 9;
+  top: 105px;
+  right: clamp(48px, 5.5vw, 92px);
+  width: 238px;
+  padding: 13px 16px 12px;
+  border: 3px solid var(--black);
+  border-radius: 24px 8px 19px 8px;
+  background: var(--bone);
+  color: var(--ink);
+  box-shadow: 6px 6px 0 var(--black), 10px 10px 0 var(--jade);
+  text-align: right;
+}
+.lab-clock::before { content: ""; position: absolute; left: 14px; right: 14px; bottom: 36px; border-top: 2px solid var(--gold); }
+.lab-clock__tag { display: block; margin-bottom: 3px; color: var(--red); font-size: 9px; font-weight: 1000; letter-spacing: .16em; }
+.lab-clock__time { display: block; font-family: "Arial Black", Inter, sans-serif; font-size: 38px; font-variant-numeric: tabular-nums; font-weight: 1000; letter-spacing: -.045em; line-height: 1; }
+.lab-clock__date { display: block; margin-top: 14px; font-size: 15px; font-weight: 1000; letter-spacing: .02em; line-height: 1.25; }
+
 .fifi-workspace { position: relative; z-index: 4; min-height: 100%; }
 .tool-cluster { position: fixed; z-index: 8; left: 14vw; top: 17vh; width: min(620px, 48vw); }
 .section-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: var(--gold); font-size: 10px; font-weight: 1000; letter-spacing: .14em; }
@@ -264,6 +283,7 @@ img { display: block; max-width: 100%; }
   .site-shell { position: relative; min-height: 1360px; overflow: hidden; }
   .fifi-topbar { position: absolute; left: 28px; right: 28px; }
   .fifi-meta { display: none; }
+  .lab-clock { position: absolute; top: 875px; right: 28px; width: min(238px, calc(100% - 160px)); }
   .game-station { position: absolute; left: 18px; top: 112px; width: 96px; height: 620px; }
   .station-head h2 { font-size: 19px; }
   .tool-cluster { position: absolute; left: 132px; top: 128px; width: calc(100% - 156px); }
@@ -283,6 +303,9 @@ img { display: block; max-width: 100%; }
   .fifi-frame { inset: 9px; border-radius: 24px; }
   .fifi-topbar { left: 24px; right: 24px; top: 20px; }
   .fifi-brand span { font-size: 14px; }
+  .lab-clock { top: 845px; right: 24px; width: calc(100% - 146px); min-width: 205px; }
+  .lab-clock__time { font-size: 34px; }
+  .lab-clock__date { font-size: 13px; }
   .game-station { left: 20px; top: 94px; width: 88px; height: 610px; }
   .game-icon { width: 39px; height: 39px; }
   .game-icon img { width: 34px; height: 34px; }

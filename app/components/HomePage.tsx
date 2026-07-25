@@ -6,6 +6,7 @@ import { GameStation } from './GameStation';
 import { GameWindow } from './GameWindow';
 import { Hero } from './Hero';
 import { InteractiveField } from './InteractiveField';
+import { LabClock } from './LabClock';
 import { ToolGrid } from './ToolGrid';
 import { ZipperTodo } from './ZipperTodo';
 
@@ -29,6 +30,7 @@ export function HomePage() {
       <div className="fifi-noise" aria-hidden="true" />
       <div className="fifi-frame" aria-hidden="true" />
       <BrandNav />
+      <LabClock />
       <main className="fifi-workspace">
         <GameStation onOpenGame={openGame} />
         <ToolGrid />
