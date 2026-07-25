@@ -53,7 +53,7 @@ h1.title, .scores-container { float: none; }
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  height: 32px;
+  height: 34px;
   margin: 0;
   padding: 0;
   overflow: visible;
@@ -63,7 +63,7 @@ h1.title, .scores-container { float: none; }
   font-size: 26px;
   font-weight: 950;
   font-variant-numeric: tabular-nums;
-  line-height: 32px;
+  line-height: 34px;
   text-align: left;
   white-space: nowrap;
 }
@@ -131,9 +131,9 @@ h1.title, .scores-container { float: none; }
   }
   .score-card__label { font-size: 10px; }
   .score-container, .best-container {
-    height: 25px;
+    height: 27px;
     font-size: 20px;
-    line-height: 25px;
+    line-height: 27px;
   }
   .score-value--compact { font-size: 14px; }
   .score-value--tiny { font-size: 12px; }

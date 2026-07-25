@@ -103,6 +103,19 @@ test('score cards remain contained in the 280px layout', async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
 });
 
+test('single-digit scores stay inside their line boxes at both sizes', async ({ page }) => {
+  for (const viewport of [
+    { width: 820, height: 760 },
+    { width: 480, height: 760 }
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('./games/2048/index.html');
+    await page.waitForFunction(() => 'fifi2048' in window);
+    await expectTextFits(page.locator('.score-container'));
+    await expectTextFits(page.locator('.best-container'));
+  }
+});
+
 test('a tile occupies a real middle frame before settling', async ({ page }) => {
   const cells = emptyCells();
   cells[3][0] = { position: { x: 3, y: 0 }, value: 2 };
