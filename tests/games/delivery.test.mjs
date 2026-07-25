@@ -55,6 +55,7 @@ test('merge Danbai aim preview uses the exact tier fill', async () => {
   const stylesheet = await readFile('public/games/merge-danbai/style.css', 'utf8');
   const gameScript = await readFile('public/games/merge-danbai/game.js', 'utf8');
   const aimRule = stylesheet.match(/\.aim-bubble\s*\{[^}]*\}/s)?.[0] ?? '';
+  const boxShadow = aimRule.match(/box-shadow:\s*([^;]+);/)?.[1] ?? '';
 
   assert.match(
     gameScript,
@@ -62,4 +63,7 @@ test('merge Danbai aim preview uses the exact tier fill', async () => {
   );
   assert.match(aimRule, /background:\s*var\(--bubble-fill\)/);
   assert.doesNotMatch(aimRule, /color-mix|transparent/);
+  assert.doesNotMatch(boxShadow, /inset/);
+  assert.match(boxShadow, /var\(--bubble-stroke\)/);
+  assert.match(boxShadow, /0 5px 13px rgba\(71,56,104,\.18\)/);
 });
