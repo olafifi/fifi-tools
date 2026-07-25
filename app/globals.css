@@ -180,9 +180,10 @@ img { display: block; max-width: 100%; }
 .title-curve { fill: var(--ink); stroke: var(--bone); stroke-width: 4; paint-order: stroke; font-size: 16px; font-weight: 1000; letter-spacing: 1.5px; }
 .count-curve { fill: var(--red); stroke: var(--bone); stroke-width: 4; paint-order: stroke; font-size: 13px; font-weight: 1000; letter-spacing: .45px; }
 .zip-guide { fill: none; stroke: transparent; stroke-width: 30; pointer-events: stroke; cursor: pointer; }
-.todo-tasks { position: absolute; z-index: 4; inset: 0; opacity: 0; transform: translateY(-18px); pointer-events: none; transition: opacity .24s, transform .42s cubic-bezier(.2,.8,.2,1); }
+.todo-tasks { position: absolute; z-index: 4; inset: 0; opacity: 0; transform: translateY(-18px); clip-path: url(#todo-content-clip); pointer-events: none; transition: opacity .24s, transform .42s cubic-bezier(.2,.8,.2,1); }
 .todo-root.open .todo-tasks { opacity: 1; transform: none; transition-delay: .24s; }
-.task-row { position: absolute; height: 31px; display: grid; grid-template-columns: 26px minmax(0,1fr) 24px; align-items: center; gap: 5px; padding: 2px 6px; border: 2px solid var(--black); border-radius: 8px 17px 8px 8px; background: var(--paper); box-shadow: 3px 3px 0 var(--black); opacity: 0; transform: translateY(-12px); pointer-events: auto; transition: opacity .2s, transform .34s cubic-bezier(.2,.82,.2,1); }
+.task-row { position: absolute; height: 31px; display: grid; grid-template-columns: 26px minmax(0,1fr) 24px; align-items: center; gap: 5px; padding: 2px 6px; border: 2px solid var(--black); border-radius: 8px 17px 8px 8px; background: var(--paper); box-shadow: 3px 3px 0 var(--black); opacity: 0; transform: translateY(-12px); pointer-events: none; transition: opacity .2s, transform .34s cubic-bezier(.2,.82,.2,1); }
+.todo-root.interactive .task-row { pointer-events: auto; }
 .todo-root.open:not(.closing) .task-row { opacity: 1; transform: none; }
 .todo-root.open:not(.closing) .task-row:nth-child(1) { transition-delay: .28s; }
 .todo-root.open:not(.closing) .task-row:nth-child(2) { transition-delay: .32s; }
@@ -217,7 +218,8 @@ img { display: block; max-width: 100%; }
 .zip-pull::before { content: ""; position: absolute; left: 13px; top: 7px; width: 15px; height: 19px; border: 3px solid var(--black); border-radius: 50%; }
 .zip-pull::after { content: ""; position: absolute; left: -9px; top: 19px; width: 13px; border-top: 3px solid var(--black); }
 .add-task { position: absolute; z-index: 7; right: 38px; bottom: 14px; width: 43px; height: 43px; border: 3px solid var(--black); border-radius: 50%; background: var(--gold); color: var(--ink); box-shadow: 3px 3px 0 var(--black); font-size: 24px; font-weight: 1000; line-height: 1; cursor: pointer; opacity: 0; transform: translateY(10px); pointer-events: none !important; transition: .26s; }
-.todo-root.open .add-task { opacity: 1; transform: none; pointer-events: auto !important; transition-delay: .18s; }
+.todo-root.open .add-task { opacity: 1; transform: none; transition-delay: .18s; }
+.todo-root.interactive .add-task { pointer-events: auto !important; }
 .todo-root.closing .add-task { opacity: 0; transform: translateY(10px); pointer-events: none !important; transition-delay: 0s; }
 .add-task:disabled { background: #918777; color: #5e564a; box-shadow: none; cursor: not-allowed; }
 

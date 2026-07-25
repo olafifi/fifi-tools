@@ -1,17 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { buildZipperGeometry } from '../lib/zipperGeometry';
 
 type TodoItem = { id: string; text: string; done: boolean };
-type Point = { x: number; y: number };
 type DragState = { id: number; x: number; y: number; moved: boolean };
 
 const STORAGE_KEY = 'fifi-zipper-flap-todo-v1';
-const P0 = { x: 52, y: 510 };
-const P1 = { x: 160, y: 356 };
-const P2 = { x: 390, y: 198 };
-const P3 = { x: 660, y: 240 };
-const LOWER_C1 = { x: 230, y: 548 };
-const LOWER_C2 = { x: 474, y: 548 };
-const LOWER_END = { x: 705, y: 548 };
+const INITIAL_GEOMETRY = buildZipperGeometry(0);
 
 function createId() {
   return globalThis.crypto?.randomUUID?.() ?? `todo-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -19,9 +13,9 @@ function createId() {
 
 function defaultTodos(): TodoItem[] {
   return [
-    { id: createId(), text: '整理今天要处理的图片', done: false },
-    { id: createId(), text: '调整富文本转换说明', done: false },
-    { id: createId(), text: '留一点时间玩游戏', done: false }
+    { id: createId(), text: '今天要做什么呢？', done: false },
+    { id: createId(), text: '想想今天要添加的计划', done: false },
+    { id: createId(), text: '也可以给自己留一点空白', done: false }
   ];
 }
 
@@ -39,24 +33,13 @@ function loadTodos(): TodoItem[] {
   }
 }
 
-const mix = (a: number, b: number, value: number) => a + (b - a) * value;
-const pointMix = (a: Point, b: Point, value: number): Point => ({ x: mix(a.x, b.x, value), y: mix(a.y, b.y, value) });
-const pointText = (point: Point) => `${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
-
-function splitUpper(value: number) {
-  const a = pointMix(P0, P1, value);
-  const b = pointMix(P1, P2, value);
-  const c = pointMix(P2, P3, value);
-  const d = pointMix(a, b, value);
-  const e = pointMix(b, c, value);
-  const q = pointMix(d, e, value);
-  return { a, d, e, q, tangent: { x: e.x - d.x, y: e.y - d.y } };
-}
-
 export function ZipperTodo() {
   const [todos, setTodos] = useState<TodoItem[]>(loadTodos);
   const [expanded, setExpanded] = useState(false);
+  const [interactive, setInteractive] = useState(false);
+  const [opening, setOpening] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const pullRef = useRef<HTMLButtonElement>(null);
   const lowerFabricRef = useRef<SVGPathElement>(null);
@@ -64,6 +47,7 @@ export function ZipperTodo() {
   const lowerLipShadowRef = useRef<SVGPathElement>(null);
   const lowerTeethRef = useRef<SVGPathElement>(null);
   const lowerSeamRef = useRef<SVGPathElement>(null);
+  const contentClipRef = useRef<SVGPathElement>(null);
   const guideRef = useRef<SVGPathElement>(null);
   const progressRef = useRef(0);
   const animationFrameRef = useRef(0);
@@ -75,30 +59,18 @@ export function ZipperTodo() {
   }, [todos]);
 
   const geometry = useCallback((rawValue: number) => {
-    const value = Math.max(0, Math.min(1, rawValue));
-    progressRef.current = value;
-    const split = splitUpper(1 - value);
-    const end = pointMix(P3, LOWER_END, value);
-    const c1 = {
-      x: split.q.x + (LOWER_C1.x - P0.x) * value,
-      y: split.q.y + (LOWER_C1.y - P0.y) * value
-    };
-    const c2 = pointMix(P3, LOWER_C2, value);
-    const left = `M${pointText(P0)} C${pointText(split.a)} ${pointText(split.d)} ${pointText(split.q)}`;
-    const lower = `${left} C${pointText(c1)} ${pointText(c2)} ${pointText(end)}`;
-    lowerFabricRef.current?.setAttribute('d', lower);
-    lowerLipShadowRef.current?.setAttribute('d', lower);
-    lowerTeethRef.current?.setAttribute('d', lower);
-    lowerSeamRef.current?.setAttribute('d', lower);
-    cavityRef.current?.setAttribute(
-      'd',
-      `M${pointText(P0)} C${pointText(P1)} ${pointText(P2)} ${pointText(P3)} L${pointText(end)} C${pointText(c2)} ${pointText(c1)} ${pointText(split.q)} C${pointText(split.d)} ${pointText(split.a)} ${pointText(P0)} Z`
-    );
-    const angle = Math.atan2(split.tangent.y, split.tangent.x) * 180 / Math.PI + 10;
+    const next = buildZipperGeometry(rawValue);
+    progressRef.current = Math.max(0, Math.min(1, rawValue));
+    lowerFabricRef.current?.setAttribute('d', next.lowerPath);
+    lowerLipShadowRef.current?.setAttribute('d', next.lowerPath);
+    lowerTeethRef.current?.setAttribute('d', next.lowerPath);
+    lowerSeamRef.current?.setAttribute('d', next.lowerPath);
+    cavityRef.current?.setAttribute('d', next.cavityPath);
+    contentClipRef.current?.setAttribute('d', next.clipPath);
     if (pullRef.current) {
-      pullRef.current.style.left = `${split.q.x - 24}px`;
-      pullRef.current.style.top = `${split.q.y - 22}px`;
-      pullRef.current.style.transform = `rotate(${angle}deg)`;
+      pullRef.current.style.left = `${next.pullLeft}px`;
+      pullRef.current.style.top = `${next.pullTop}px`;
+      pullRef.current.style.transform = `rotate(${next.pullAngle}deg)`;
     }
   }, []);
 
@@ -114,6 +86,8 @@ export function ZipperTodo() {
     const began = performance.now();
     const duration = 360 + Math.abs(delta) * 430;
     setExpanded(target === 1);
+    setInteractive(false);
+    setOpening(target === 1);
     setClosing(target === 0 && start > 0.02);
 
     const tick = (now: number) => {
@@ -123,7 +97,9 @@ export function ZipperTodo() {
       if (raw < 1) animationFrameRef.current = window.requestAnimationFrame(tick);
       else {
         geometry(target);
+        setOpening(false);
         if (target === 0) setClosing(false);
+        else setInteractive(true);
       }
     };
     animationFrameRef.current = window.requestAnimationFrame(tick);
@@ -167,6 +143,7 @@ export function ZipperTodo() {
     const drag = dragRef.current;
     if (!drag || event.pointerId !== drag.id) return;
     dragRef.current = null;
+    setDragging(false);
     event.currentTarget.classList.remove('dragging');
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture?.(event.pointerId);
     if (drag.moved) {
@@ -176,17 +153,20 @@ export function ZipperTodo() {
   };
 
   const doneCount = todos.filter((item) => item.done).length;
-  const rootOpen = expanded || closing;
+  const rootOpen = expanded || opening || closing || dragging;
 
   return (
-    <section className={`todo-root${rootOpen ? ' open' : ''}${closing ? ' closing' : ''}`} aria-label="拉链 To-Do List">
+    <section className={`todo-root${rootOpen ? ' open' : ''}${interactive ? ' interactive' : ''}${closing ? ' closing' : ''}`} aria-label="拉链 To-Do List">
       <svg className="todo-svg" viewBox="0 0 720 560" aria-hidden="true" ref={svgRef}>
         <defs>
           <path id="todo-upper-curve" d="M52 510 C160 356 390 198 660 240" />
           <path id="todo-title-curve" d="M73 444 C181 300 395 164 625 190" />
+          <clipPath id="todo-content-clip" clipPathUnits="userSpaceOnUse">
+            <path ref={contentClipRef} d={INITIAL_GEOMETRY.clipPath} />
+          </clipPath>
         </defs>
-        <path ref={lowerFabricRef} className="lower-fabric" d="M52 510 C160 356 390 198 660 240" />
-        <path ref={cavityRef} className="todo-cavity" d="M52 510 C160 356 390 198 660 240" />
+        <path ref={lowerFabricRef} className="lower-fabric" d={INITIAL_GEOMETRY.lowerPath} />
+        <path ref={cavityRef} className="todo-cavity" d={INITIAL_GEOMETRY.cavityPath} />
         <path d="M38 526 C140 345 382 171 677 222 L660 240 C390 198 160 356 52 510 Z" className="upper-fabric" />
         <path d="M52 510 C160 356 390 198 660 240" className="lip-shadow" />
         <path d="M52 510 C160 356 390 198 660 240" className="zip-teeth" />
@@ -201,7 +181,7 @@ export function ZipperTodo() {
         <path ref={guideRef} d="M52 510 C160 356 390 198 660 240" className="zip-guide" />
       </svg>
 
-      <div className="todo-tasks" hidden={!rootOpen}>
+      <div className="todo-tasks" aria-hidden={!expanded} hidden={!rootOpen}>
         {todos.map((item, index) => (
           <div
             className={`task-row${item.done ? ' done' : ''}`}
@@ -213,18 +193,21 @@ export function ZipperTodo() {
               className="task-check"
               onClick={() => setTodos((current) => current.map((todo) => todo.id === item.id ? { ...todo, done: !todo.done } : todo))}
               type="button"
+              tabIndex={interactive ? 0 : -1}
             >{item.done ? '✓' : ''}</button>
             <input
               aria-label="待办内容"
               maxLength={50}
               onChange={(event) => setTodos((current) => current.map((todo) => todo.id === item.id ? { ...todo, text: event.target.value.slice(0, 50) } : todo))}
               value={item.text}
+              tabIndex={interactive ? 0 : -1}
             />
             <button
               aria-label="删除任务"
               className="task-delete"
               onClick={() => setTodos((current) => current.filter((todo) => todo.id !== item.id))}
               type="button"
+              tabIndex={interactive ? 0 : -1}
             >×</button>
           </div>
         ))}
@@ -244,7 +227,11 @@ export function ZipperTodo() {
         onPointerCancel={endDrag}
         onPointerDown={(event) => {
           window.cancelAnimationFrame(animationFrameRef.current);
+          setExpanded(false);
+          setInteractive(false);
+          setOpening(false);
           setClosing(false);
+          setDragging(true);
           dragRef.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
           event.currentTarget.setPointerCapture?.(event.pointerId);
           event.currentTarget.classList.add('dragging');
@@ -265,7 +252,7 @@ export function ZipperTodo() {
         className="add-task"
         disabled={todos.length >= 8}
         onClick={() => setTodos((current) => current.length >= 8 ? current : [...current, { id: createId(), text: '', done: false }])}
-        tabIndex={rootOpen ? 0 : -1}
+        tabIndex={interactive ? 0 : -1}
         type="button"
       >＋</button>
     </section>

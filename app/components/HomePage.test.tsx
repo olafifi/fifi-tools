@@ -35,6 +35,21 @@ describe('HomePage', () => {
     expect(screen.queryByText('三消')).not.toBeInTheDocument();
   });
 
+  it('uses neutral default todos without replacing saved todos', () => {
+    const first = render(<HomePage />);
+    expect(screen.getByDisplayValue('今天要做什么呢？')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('想想今天要添加的计划')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('也可以给自己留一点空白')).toBeInTheDocument();
+    first.unmount();
+
+    window.localStorage.setItem('fifi-zipper-flap-todo-v1', JSON.stringify([
+      { id: 'saved', text: '我自己的计划', done: false }
+    ]));
+    render(<HomePage />);
+    expect(screen.getByDisplayValue('我自己的计划')).toBeInTheDocument();
+    expect(screen.queryByDisplayValue('今天要做什么呢？')).not.toBeInTheDocument();
+  });
+
   it('tracks total and completed todo items and caps the list at eight', async () => {
     render(<HomePage />);
 
