@@ -84,9 +84,9 @@ img { display: block; max-width: 100%; }
 .lab-clock {
   position: fixed;
   z-index: 9;
-  top: 102px;
-  left: 52vw;
-  width: 45vw;
+  top: 126px;
+  left: 55vw;
+  width: 42vw;
   padding: 0;
   color: var(--bone);
   text-align: center;
