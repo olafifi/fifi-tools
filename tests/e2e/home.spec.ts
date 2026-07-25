@@ -266,7 +266,9 @@ test('allows only one successful score submission per game', async ({ page }) =>
     input.value = '换名重复';
     (document.querySelector('[data-qualifying-form]') as HTMLFormElement).requestSubmit();
   });
-  await page.waitForTimeout(100);
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
   expect(postCount).toBe(1);
 
   await page.locator('[data-local-restart]').evaluate((button) => {
@@ -286,12 +288,8 @@ test('ignores a previous game submission that fails after restart', async ({ pag
   let postCount = 0;
   let releaseFirst!: () => void;
   let releaseSecond!: () => void;
-  let markFirstFulfilled!: () => void;
-  let markSecondFulfilled!: () => void;
   const firstGate = new Promise<void>((resolve) => { releaseFirst = resolve; });
   const secondGate = new Promise<void>((resolve) => { releaseSecond = resolve; });
-  const firstFulfilled = new Promise<void>((resolve) => { markFirstFulfilled = resolve; });
-  const secondFulfilled = new Promise<void>((resolve) => { markSecondFulfilled = resolve; });
 
   await page.route(apiPattern, async (route) => {
     const method = route.request().method();
@@ -325,7 +323,6 @@ test('ignores a previous game submission that fails after restart', async ({ pag
         headers: corsHeaders,
         body: JSON.stringify({ error: '旧的一局提交失败' })
       });
-      markFirstFulfilled();
       return;
     }
     if (requestNumber === 2) {
@@ -341,7 +338,6 @@ test('ignores a previous game submission that fails after restart', async ({ pag
           cutoffScore: 0
         })
       });
-      markSecondFulfilled();
       return;
     }
 
@@ -371,9 +367,15 @@ test('ignores a previous game submission that fails after restart', async ({ pag
   });
   await expect.poll(() => postCount).toBe(2);
 
+  const firstResponsePromise = page.waitForResponse((response) => (
+    response.request().method() === 'POST' && response.status() === 500
+  ));
   releaseFirst();
-  await firstFulfilled;
-  await page.waitForTimeout(100);
+  const firstResponse = await firstResponsePromise;
+  await firstResponse.finished();
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
   await expect(page.locator('[data-nickname]')).toBeDisabled();
   await expect(page.locator('[data-submit-score]')).toBeDisabled();
   await expect(page.locator('[data-submit-status]')).toHaveText('正在提交…');
@@ -386,11 +388,17 @@ test('ignores a previous game submission that fails after restart', async ({ pag
     input.value = '旧请求不应解锁';
     (document.querySelector('[data-qualifying-form]') as HTMLFormElement).requestSubmit();
   });
-  await page.waitForTimeout(100);
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
   expect(postCount).toBe(2);
 
+  const secondResponsePromise = page.waitForResponse((response) => (
+    response.request().method() === 'POST' && response.status() === 201
+  ));
   releaseSecond();
-  await secondFulfilled;
+  const secondResponse = await secondResponsePromise;
+  await secondResponse.finished();
   await expect(page.locator('[data-submit-status]')).toContainText('第 2 名');
   await expect(page.locator('[data-nickname]')).toBeDisabled();
 });
@@ -449,7 +457,9 @@ test('keeps a successful score locked when the response list is malformed', asyn
     input.value = '不该再提交';
     (document.querySelector('[data-qualifying-form]') as HTMLFormElement).requestSubmit();
   });
-  await page.waitForTimeout(100);
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
   expect(postCount).toBe(1);
 });
 
