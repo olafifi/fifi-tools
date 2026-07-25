@@ -116,6 +116,27 @@ test('single-digit scores stay inside their line boxes at both sizes', async ({ 
   }
 });
 
+test('score addition stays clear of the restart button', async ({ page }) => {
+  await page.setViewportSize({ width: 820, height: 760 });
+  await page.goto('./games/2048/index.html');
+  await setLongScores(page);
+  await expect(page.locator('.score-addition')).toBeVisible();
+
+  const [addition, restart] = await Promise.all([
+    page.locator('.score-addition').boundingBox(),
+    page.getByRole('button', { name: '新一局' }).boundingBox()
+  ]);
+  if (!addition || !restart) throw new Error('得分提示或重开按钮没有完成渲染。');
+
+  const overlaps = !(
+    addition.x + addition.width <= restart.x ||
+    restart.x + restart.width <= addition.x ||
+    addition.y + addition.height <= restart.y ||
+    restart.y + restart.height <= addition.y
+  );
+  expect(overlaps).toBe(false);
+});
+
 test('a tile occupies a real middle frame before settling', async ({ page }) => {
   const cells = emptyCells();
   cells[3][0] = { position: { x: 3, y: 0 }, value: 2 };
@@ -157,10 +178,18 @@ test('merge and new-tile feedback wait until the slide finishes', async ({ page 
   await page.keyboard.press('ArrowLeft');
   await expect(page.locator('.game-container')).toHaveAttribute('data-motion-phase', 'sliding');
   await expect(page.locator('.tile-merged')).toHaveClass(/tile-result-staged/);
+  await expect(page.locator('.tile-merged .tile-inner')).toHaveCSS(
+    'animation-play-state',
+    'paused'
+  );
   await expect(page.locator('.game-container')).toHaveAttribute(
     'data-motion-phase',
     'resolving',
     { timeout: 500 }
+  );
+  await expect(page.locator('.tile-merged .tile-inner')).toHaveCSS(
+    'animation-play-state',
+    'running'
   );
   await expect(page.locator('.tile-merged .tile-inner')).not.toHaveCSS(
     'transform',

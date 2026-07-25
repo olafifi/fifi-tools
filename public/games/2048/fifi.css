@@ -1,7 +1,6 @@
 :root {
   --tile-slide-duration: 240ms;
   --tile-result-duration: 120ms;
-  --tile-result-delay: 240ms;
   --berry-ink: #514866;
   --berry-board: #5b4f7b;
   --berry-cell: #756a92;
@@ -73,7 +72,7 @@ h1.title, .scores-container { float: none; }
 .score-card .score-addition {
   position: absolute;
   right: 8px;
-  bottom: -22px;
+  top: -18px;
   z-index: 100;
   color: #72527a;
   font-size: 16px;
@@ -83,8 +82,8 @@ h1.title, .scores-container { float: none; }
   animation: fifi-score-rise 600ms ease-out both;
 }
 @keyframes fifi-score-rise {
-  from { opacity: 1; transform: translateY(8px); }
-  to { opacity: 0; transform: translateY(-18px); }
+  from { opacity: 1; transform: translateY(6px); }
+  to { opacity: 0; transform: translateY(-12px); }
 }
 .above-game { display: flex; align-items: center; gap: 12px; }
 .above-game p { margin: 0; }
@@ -96,9 +95,14 @@ h1.title, .scores-container { float: none; }
   will-change: transform;
 }
 .tile-result-staged .tile-inner {
-  animation-delay: var(--tile-result-delay);
+  animation-delay: 0ms;
   animation-duration: var(--tile-result-duration);
   animation-fill-mode: backwards;
+  animation-play-state: paused;
+}
+.game-container[data-motion-phase="resolving"] .tile-result-staged .tile-inner,
+.game-container[data-motion-phase="settled"] .tile-result-staged .tile-inner {
+  animation-play-state: running;
 }
 .tile.tile-2 .tile-inner { color: #514866; background: #f1dce8; }
 .tile.tile-4 .tile-inner { color: #514866; background: #e8c4d6; }
@@ -143,7 +147,6 @@ h1.title, .scores-container { float: none; }
   :root {
     --tile-slide-duration: 0ms;
     --tile-result-duration: 0ms;
-    --tile-result-delay: 0ms;
   }
   .tile-result-staged .tile-inner {
     animation-delay: 0ms;
