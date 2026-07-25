@@ -1,6 +1,19 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { resolveTool } from '../../public/open-tool-config.js';
+
+test('tool transition resolves only the two approved destinations', () => {
+  assert.deepEqual(resolveTool('image-processor'), {
+    name: 'FiFi 图片处理工具',
+    href: 'https://olafifi.github.io/ui-image-processor/'
+  });
+  assert.deepEqual(resolveTool('rich-text'), {
+    name: 'FiFi 富文本转换',
+    href: 'https://olafifi.github.io/rich-text-translator/'
+  });
+  assert.equal(resolveTool('https://evil.example'), null);
+});
 
 test('GitHub Pages workflow builds, tests, and deploys dist', async () => {
   const workflow = await readFile('.github/workflows/deploy.yml', 'utf8');

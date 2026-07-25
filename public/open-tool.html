@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN" data-state="loading">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#171411" />
+    <title>正在打开工具 · FIFI Lab</title>
+    <link rel="stylesheet" href="./open-tool.css?v=20260726-portal-c" />
+  </head>
+  <body>
+    <main class="portal-page" aria-live="polite">
+      <header class="portal-brand"><b>FIFI Lab</b><span>TOOL TRANSFER / 01</span></header>
+      <section class="portal-stage" aria-label="蛋白传送门动画">
+        <div class="portal portal--entry" aria-hidden="true"><i></i></div>
+        <div class="portal portal--exit" aria-hidden="true"><i></i></div>
+        <svg class="portal-cat" viewBox="0 0 120 118" aria-hidden="true">
+          <path class="cat-tail" d="M29 76C4 67 5 41 25 46c-8 6-6 15 7 16" />
+          <ellipse class="cat-fur" cx="61" cy="79" rx="34" ry="26" />
+          <path class="cat-fur" d="M36 53 32 22l19 14c7-3 14-3 21 0l19-14-5 33c3 5 4 11 3 17-2 17-15 26-32 24-19-2-30-14-28-31 1-5 3-9 7-12Z" />
+          <path class="cat-stripe" d="m51 35 4 11m8-12-1 13m10-10-6 11" />
+          <circle class="cat-eye" cx="48" cy="61" r="3.5" /><circle class="cat-eye" cx="72" cy="61" r="3.5" />
+          <path class="cat-line" d="m57 68 4 3 4-3m-4 3v5m0 0c-4 3-9 2-11-1m11 1c3 3 8 3 11-1" />
+          <circle class="cat-blush" cx="43" cy="71" r="3.5" /><circle class="cat-blush" cx="79" cy="71" r="3.5" />
+          <path class="cat-leg cat-leg--left" d="M43 94c-5 9-4 16 5 16 8 0 10-5 8-14" />
+          <path class="cat-leg cat-leg--right" d="M70 96c0 10 4 14 11 12 9-2 8-9 1-15" />
+        </svg>
+        <div class="delivery-ticket" aria-hidden="true"><small>FIFI LAB</small><strong>工具<br />已送达</strong><i>✓</i></div>
+        <div class="portal-copy">
+          <strong>蛋白正在穿过实验通道</strong>
+          <span data-tool-name>准备工具中</span>
+        </div>
+        <div class="portal-progress" aria-hidden="true"><i></i></div>
+      </section>
+      <p class="portal-fallback">没有自动打开？<a data-fallback-link href="./">直接进入 <span data-tool-name>工具</span></a></p>
+      <section class="portal-error" role="alert">
+        <strong>这条实验通道不存在</strong>
+        <p>工具地址没有通过 FIFI Lab 的安全清单。</p>
+        <a href="./">返回 FIFI Lab</a>
+      </section>
+      <noscript><p class="noscript">请启用 JavaScript，或直接打开 <a href="https://olafifi.github.io/ui-image-processor/">FiFi 图片处理工具</a> / <a href="https://olafifi.github.io/rich-text-translator/">FiFi 富文本转换</a>。</p></noscript>
+    </main>
+    <script type="module" src="./open-tool.js?v=20260726-portal-c"></script>
+  </body>
+</html>

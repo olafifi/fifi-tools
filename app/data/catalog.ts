@@ -12,6 +12,7 @@ export type ToolItem = {
   id: string;
   name: string;
   href: string;
+  transitionPath: string;
   thumbnailAsset: string;
   accent: 'red' | 'jade';
 };
@@ -32,6 +33,7 @@ export const TOOLS: ToolItem[] = [
     id: 'image-processor',
     name: 'FiFi 图片处理工具',
     href: 'https://olafifi.github.io/ui-image-processor/',
+    transitionPath: asset('open-tool.html?tool=image-processor'),
     thumbnailAsset: asset('tools/image-processor-preview.png'),
     accent: 'red'
   },
@@ -39,6 +41,7 @@ export const TOOLS: ToolItem[] = [
     id: 'rich-text',
     name: 'FiFi 富文本转换',
     href: 'https://olafifi.github.io/rich-text-translator/',
+    transitionPath: asset('open-tool.html?tool=rich-text'),
     thumbnailAsset: asset('tools/rich-text-preview.png'),
     accent: 'jade'
   }

@@ -23,11 +23,11 @@ describe('HomePage', () => {
 
     expect(screen.getByRole('link', { name: /FiFi 图片处理工具/ })).toHaveAttribute(
       'href',
-      'https://olafifi.github.io/ui-image-processor/'
+      '/open-tool.html?tool=image-processor'
     );
     expect(screen.getByRole('link', { name: /FiFi 富文本转换/ })).toHaveAttribute(
       'href',
-      'https://olafifi.github.io/rich-text-translator/'
+      '/open-tool.html?tool=rich-text'
     );
     for (const name of ['2048', '数独', '俄罗斯方块', '贪吃蛇', '合成大蛋白']) {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();

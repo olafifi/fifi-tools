@@ -1,0 +1,94 @@
+:root {
+  --ink: #171411;
+  --black: #090806;
+  --bone: #efe3c9;
+  --paper: #f8efdc;
+  --red: #a43828;
+  --jade: #376b61;
+  --gold: #d1a447;
+  --pink: #c9798d;
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  color: var(--bone);
+  background: var(--ink);
+}
+
+* { box-sizing: border-box; }
+html, body { width: 100%; min-width: 320px; min-height: 100%; margin: 0; overflow: hidden; }
+body { background-color: var(--ink); background-image: radial-gradient(rgba(239,227,201,.11) 1px, transparent 1px); background-size: 8px 8px; }
+a { color: inherit; }
+
+.portal-page { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; width: 100%; min-height: 100dvh; padding: clamp(18px, 3vw, 42px); }
+.portal-brand { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 13px; border-bottom: 2px solid var(--gold); }
+.portal-brand b { padding: 6px 10px; border: 2px solid var(--black); background: var(--bone); color: var(--ink); box-shadow: 4px 4px 0 var(--red); font-size: 16px; }
+.portal-brand span { color: var(--gold); font-size: 10px; font-weight: 1000; letter-spacing: .16em; }
+
+.portal-stage { position: relative; align-self: center; width: min(1180px, 92vw); height: min(560px, 68vh); min-height: 360px; margin: auto; overflow: hidden; border: 3px solid var(--black); border-radius: 20px 58px 20px 20px; background: #211c17; box-shadow: 11px 12px 0 var(--black), 18px 19px 0 var(--gold); }
+.portal-stage::before { content: ""; position: absolute; inset: 0; opacity: .24; background: repeating-radial-gradient(ellipse at 36% 48%, transparent 0 38px, rgba(239,227,201,.4) 39px 41px); }
+.portal-stage::after { content: "TRANSFER CHANNEL / FIFI-01"; position: absolute; top: 14px; left: 18px; color: rgba(239,227,201,.56); font-size: 9px; font-weight: 1000; letter-spacing: .2em; }
+
+.portal { position: absolute; z-index: 2; top: 50%; width: clamp(100px, 12vw, 164px); height: clamp(210px, 36vh, 330px); border: 5px solid var(--black); border-radius: 50%; box-shadow: inset 0 0 0 10px var(--pink), 8px 9px 0 var(--black); transform: translateY(-50%); }
+.portal i { position: absolute; inset: 16px; border: 3px dashed var(--bone); border-radius: inherit; animation: portal-spin 1.5s linear infinite; }
+.portal--entry { left: clamp(25px, 6vw, 92px); background: var(--red); }
+.portal--exit { right: clamp(25px, 6vw, 92px); background: var(--jade); box-shadow: inset 0 0 0 10px #6f9b86, 8px 9px 0 var(--black); }
+
+.portal-cat { position: absolute; z-index: 5; left: calc(6vw + 35px); top: 50%; width: clamp(90px, 10vw, 138px); overflow: visible; color: var(--black); filter: drop-shadow(5px 6px 0 rgba(0,0,0,.5)); animation: cat-portal 1.38s cubic-bezier(.24,.7,.2,1) both; }
+.cat-fur, .cat-tail, .cat-leg { fill: var(--bone); stroke: currentColor; stroke-width: 4; stroke-linejoin: round; }
+.cat-stripe { fill: none; stroke: var(--red); stroke-width: 4; stroke-linecap: round; }
+.cat-line { fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
+.cat-eye { fill: currentColor; }
+.cat-blush { fill: var(--pink); }
+.cat-leg--left { transform-origin: 48px 96px; animation: leg-kick .18s ease-in-out 7 alternate; }
+.cat-leg--right { transform-origin: 76px 96px; animation: leg-kick .18s ease-in-out 7 alternate-reverse; }
+.cat-tail { transform-origin: 29px 76px; animation: tail-swish .26s ease-in-out 5 alternate; }
+
+.delivery-ticket { position: absolute; z-index: 7; right: clamp(30px, 8vw, 120px); top: 50%; display: grid; grid-template-columns: 1fr auto; gap: 7px; width: 118px; padding: 12px; border: 3px solid var(--black); border-radius: 9px 22px 9px 9px; background: var(--bone); color: var(--ink); box-shadow: 6px 6px 0 var(--black); transform: translateY(-50%) rotate(7deg) scale(0); animation: ticket-arrive 1.5s both; }
+.delivery-ticket small { grid-column: 1 / -1; color: var(--red); font-size: 8px; font-weight: 1000; letter-spacing: .15em; }
+.delivery-ticket strong { font-size: 18px; line-height: 1.05; }
+.delivery-ticket i { display: grid; place-items: center; width: 32px; height: 32px; border: 2px solid var(--black); border-radius: 50%; background: var(--gold); font-style: normal; font-weight: 1000; }
+
+.portal-copy { position: absolute; z-index: 9; left: 22px; bottom: 26px; display: grid; gap: 3px; }
+.portal-copy strong { font-size: clamp(15px, 2vw, 21px); }
+.portal-copy span { color: var(--gold); font-size: 10px; font-weight: 1000; letter-spacing: .13em; }
+.portal-progress { position: absolute; z-index: 9; left: 22px; right: 22px; bottom: 14px; height: 3px; background: rgba(239,227,201,.2); }
+.portal-progress i { display: block; width: 0; height: 100%; background: var(--gold); animation: progress 1.42s steps(10, end) both; }
+.portal-fallback { margin: 26px 0 0; color: #cfc2a7; text-align: center; font-size: 12px; }
+.portal-fallback a { color: var(--gold); font-weight: 900; }
+.portal-error, .noscript { display: none; }
+
+html[data-state="error"] .portal-stage, html[data-state="error"] .portal-fallback { display: none; }
+html[data-state="error"] .portal-error { align-self: center; justify-self: center; display: block; width: min(470px, 90vw); padding: 28px; border: 3px solid var(--black); border-radius: 16px 38px 16px 16px; background: var(--bone); color: var(--ink); box-shadow: 9px 10px 0 var(--black), 15px 16px 0 var(--red); }
+.portal-error strong { font-size: 26px; }
+.portal-error p { color: #62594c; line-height: 1.6; }
+.portal-error a { display: inline-block; padding: 9px 13px; border: 2px solid var(--black); border-radius: 8px 14px 8px 8px; background: var(--gold); box-shadow: 3px 3px 0 var(--black); font-weight: 1000; text-decoration: none; }
+
+@keyframes portal-spin { to { transform: rotate(1turn); } }
+@keyframes leg-kick { to { transform: rotate(24deg); } }
+@keyframes tail-swish { to { transform: rotate(-19deg); } }
+@keyframes cat-portal {
+  0% { left: calc(6vw + 44px); opacity: 0; transform: translateY(-43%) rotate(10deg) scale(.18); }
+  12% { opacity: 1; transform: translateY(-50%) rotate(2deg) scale(.72); }
+  43% { left: 39%; transform: translateY(-57%) rotate(-5deg) scale(1); }
+  68% { left: calc(88% - 150px); opacity: 1; transform: translateY(-49%) rotate(12deg) scale(.68); }
+  78% { left: calc(88% - 118px); opacity: 0; transform: translateY(-49%) rotate(18deg) scale(.12); }
+  100% { left: calc(88% - 118px); opacity: 0; transform: translateY(-49%) scale(.12); }
+}
+@keyframes ticket-arrive { 0%, 78% { transform: translateY(-50%) rotate(7deg) scale(0); } 91% { transform: translateY(-50%) rotate(-3deg) scale(1.13); } 100% { transform: translateY(-50%) rotate(0) scale(1); } }
+@keyframes progress { to { width: 100%; } }
+
+@media (max-width: 620px) {
+  .portal-page { padding: 18px; }
+  .portal-brand span { display: none; }
+  .portal-stage { width: calc(100vw - 36px); height: 66vh; min-height: 420px; border-radius: 14px 36px 14px 14px; box-shadow: 7px 8px 0 var(--black), 12px 13px 0 var(--gold); }
+  .portal { width: 92px; height: 210px; }
+  .portal--entry { left: 13px; }
+  .portal--exit { right: 13px; }
+  .portal-cat { width: 88px; }
+  .delivery-ticket { right: 24px; width: 104px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal i, .portal-cat, .cat-leg, .cat-tail, .delivery-ticket, .portal-progress i { animation: none; }
+  .portal-cat { left: 50%; opacity: 1; transform: translate(-50%, -50%); }
+  .delivery-ticket { display: none; }
+  .portal-progress i { width: 100%; }
+}
