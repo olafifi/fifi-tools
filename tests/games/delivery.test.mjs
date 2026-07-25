@@ -62,8 +62,9 @@ test('merge Danbai aim preview uses the exact tier fill', async () => {
     /aimBubble\.style\.setProperty\(['"]--bubble-fill['"],\s*tier\.fill\)/
   );
   assert.match(aimRule, /background:\s*var\(--bubble-fill\)/);
+  assert.match(aimRule, /border:\s*3px solid rgba\(255,255,255,\.92\)/);
   assert.doesNotMatch(aimRule, /color-mix|transparent/);
   assert.doesNotMatch(boxShadow, /inset/);
-  assert.match(boxShadow, /var\(--bubble-stroke\)/);
+  assert.match(boxShadow, /0 0 0 2px var\(--bubble-stroke\)/);
   assert.match(boxShadow, /0 5px 13px rgba\(71,56,104,\.18\)/);
 });
