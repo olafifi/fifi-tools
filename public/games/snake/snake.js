@@ -68,17 +68,17 @@
   }
 
   function draw() {
-    context.fillStyle = '#f1efff';
+    context.fillStyle = '#f8efdc';
     context.fillRect(0, 0, canvas.width, canvas.height);
-    context.strokeStyle = 'rgba(41,38,65,.08)';
+    context.strokeStyle = 'rgba(9,8,6,.09)';
     for (let i = 0; i <= gridSize; i += 1) {
       context.beginPath(); context.moveTo(i * cell, 0); context.lineTo(i * cell, canvas.height); context.stroke();
       context.beginPath(); context.moveTo(0, i * cell); context.lineTo(canvas.width, i * cell); context.stroke();
     }
     if (foodImage.complete) context.drawImage(foodImage, food.x * cell, food.y * cell, cell, cell);
-    else { context.fillStyle = '#ff6aa2'; context.fillRect(food.x * cell + 3, food.y * cell + 3, cell - 6, cell - 6); }
+    else { context.fillStyle = '#d1a447'; context.fillRect(food.x * cell + 3, food.y * cell + 3, cell - 6, cell - 6); }
     snake.forEach((part, index) => {
-      context.fillStyle = index === 0 ? '#312c68' : '#5c5cf0';
+      context.fillStyle = index === 0 ? '#a43828' : '#376b61';
       context.beginPath();
       context.roundRect(part.x * cell + 2, part.y * cell + 2, cell - 4, cell - 4, 5);
       context.fill();

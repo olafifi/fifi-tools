@@ -35,11 +35,11 @@ test('2048 does not request the missing Clear Sans stylesheet', async () => {
   assert.doesNotMatch(stylesheet, /fonts\/clear-sans\.css/);
 });
 
-test('2048 uses the approved berry-soda motion and palette', async () => {
+test('2048 keeps its motion and uses the FIFI Lab berry accent', async () => {
   const theme = await readFile('public/games/2048/fifi.css', 'utf8');
   assert.match(theme, /--tile-slide-duration:\s*240ms/);
   assert.match(theme, /\.tile\.tile-2048/);
-  assert.match(theme, /#6e5a9b/i);
+  assert.match(theme, /--fifi-berry|#7e3048/i);
 });
 
 test('merge Danbai exposes drop guidance and local game-over controls', async () => {

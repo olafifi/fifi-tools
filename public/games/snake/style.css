@@ -1,10 +1,11 @@
-body { place-items: center; background: #eefbd3; }
+:root { --game-accent: var(--fifi-red); }
+body { place-items: center; background: var(--fifi-paper); }
 .snake-shell { width: min(100%, 520px); max-height: 100%; margin: auto; text-align: center; }
-.score-line { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #312c68; font-weight: 900; }
-.score-line strong { padding: 7px 10px; border: 2px solid #292641; border-radius: 8px; background: white; font-size: 0.8rem; }
-.snake-shell canvas { display: block; width: min(100%, calc(100dvh - 160px)); height: auto; margin-inline: auto; border: 3px solid #292641; border-radius: 12px; background: white; }
+.score-line { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: var(--fifi-ink); font-weight: 900; }
+.score-line strong { padding: 7px 10px; border: 2px solid var(--fifi-black); border-radius: 8px 14px 8px 8px; background: var(--fifi-bone); box-shadow: 3px 3px 0 var(--fifi-red); font-size: 0.8rem; }
+.snake-shell canvas { display: block; width: min(100%, calc(100dvh - 160px)); height: auto; margin-inline: auto; border: 3px solid var(--fifi-black); border-radius: 12px 24px 12px 12px; background: var(--fifi-paper); box-shadow: 6px 6px 0 var(--fifi-red); }
 .snake-controls { display: grid; grid-template-columns: repeat(3, 56px); grid-template-areas: ". up ." "left down right"; justify-content: center; gap: 7px; margin-top: 13px; }
-.snake-controls button { min-height: 48px; border: 2px solid #292641; border-radius: 10px; background: #ffe268; font-size: 1.2rem; font-weight: 900; box-shadow: 2px 2px 0 #292641; }
+.snake-controls button { min-height: 48px; background: var(--fifi-gold); font-size: 1.2rem; }
 [data-direction-button="up"] { grid-area: up; } [data-direction-button="left"] { grid-area: left; } [data-direction-button="down"] { grid-area: down; } [data-direction-button="right"] { grid-area: right; }
-p { min-height: 1.5em; margin: 12px 0 0; color: #625e76; font-size: 0.8rem; }
+p { min-height: 1.5em; margin: 12px 0 0; color: #62594c; font-size: 0.8rem; }
 @media (max-height: 650px) { .snake-shell > p { display: none; } }

@@ -1,9 +1,10 @@
-body { place-items: center; background: #292641; color: white; }
+:root { --game-accent: var(--fifi-gold); }
+body { place-items: center; background: var(--fifi-ink); color: var(--fifi-bone); }
 .tetris-shell { width: min(100%, 360px); max-height: 100%; margin: auto; text-align: center; }
 .score-line { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 900; }
-.score-line strong { padding: 7px 10px; border-radius: 8px; color: #292641; background: #e1ff85; font-size: 0.82rem; }
-.tetris-shell canvas { display: block; width: min(280px, calc((100dvh - 145px) / 2)); height: auto; margin: auto; border: 3px solid white; border-radius: 8px; background: #ecebff; image-rendering: pixelated; }
+.score-line strong { padding: 7px 10px; border: 2px solid var(--fifi-black); border-radius: 8px 14px 8px 8px; color: var(--fifi-ink); background: var(--fifi-gold); box-shadow: 3px 3px 0 #000; font-size: 0.82rem; }
+.tetris-shell canvas { display: block; width: min(280px, calc((100dvh - 145px) / 2)); height: auto; margin: auto; border: 3px solid var(--fifi-bone); border-radius: 8px 20px 8px 8px; background: #211c17; box-shadow: 6px 6px 0 var(--fifi-gold); image-rendering: pixelated; }
 .touch-controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin: 12px auto 0; max-width: 270px; }
-.touch-controls button { min-height: 42px; border: 2px solid #121022; border-radius: 9px; background: #ffe268; font-size: 1.2rem; font-weight: 900; box-shadow: 2px 2px 0 #fff; }
-p { margin: 13px 0 0; color: #c9c5ef; font-size: 0.78rem; }
+.touch-controls button { min-height: 42px; background: var(--fifi-bone); font-size: 1.2rem; }
+p { margin: 13px 0 0; color: #cfc2a7; font-size: 0.78rem; }
 @media (max-height: 650px) { .tetris-shell > p { display: none; } }

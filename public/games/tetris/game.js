@@ -8,7 +8,7 @@
   const cols = 10;
   const rows = 20;
   const cell = 24;
-  const colors = ['#0000', '#5c5cf0', '#ff6aa2', '#e1b900', '#38b2ac', '#9b5de5', '#ff8c42', '#61c36f'];
+  const colors = ['#0000', '#a43828', '#d1a447', '#376b61', '#c9798d', '#7e3048', '#efe3c9', '#6f9b86'];
   const shapes = [
     [[1, 1, 1, 1]],
     [[1, 1], [1, 1]],
@@ -98,7 +98,7 @@
   }
 
   function draw() {
-    context.fillStyle = '#ecebff';
+    context.fillStyle = '#211c17';
     context.fillRect(0, 0, canvas.width, canvas.height);
     board.forEach((row, y) => row.forEach((value, x) => value && drawCell(x, y, value)));
     piece.shape.forEach((row, y) => row.forEach((filled, x) => {

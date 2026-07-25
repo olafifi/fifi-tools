@@ -1,8 +1,17 @@
 :root {
   --game-viewport-height: 100dvh;
+  --fifi-ink: #171411;
+  --fifi-black: #090806;
+  --fifi-bone: #efe3c9;
+  --fifi-paper: #f8efdc;
+  --fifi-red: #a43828;
+  --fifi-jade: #376b61;
+  --fifi-gold: #d1a447;
+  --fifi-berry: #7e3048;
+  --game-accent: var(--fifi-red);
   font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
-  color: #292641;
-  background: #f7f6f1;
+  color: var(--fifi-ink);
+  background: var(--fifi-paper);
 }
 
 * { box-sizing: border-box; }
@@ -14,8 +23,10 @@ body {
   overflow: hidden;
 }
 button, input { font: inherit; }
-button { cursor: pointer; }
-:focus-visible { outline: 4px solid #18a999; outline-offset: 2px; }
+button { border: 2px solid var(--fifi-black); border-radius: 8px 14px 8px 8px; background: var(--fifi-bone); color: var(--fifi-ink); box-shadow: 3px 3px 0 var(--fifi-black); cursor: pointer; font-weight: 900; }
+button:hover { background: color-mix(in srgb, var(--game-accent) 18%, var(--fifi-bone)); }
+button:active { box-shadow: 1px 1px 0 var(--fifi-black); transform: translate(2px, 2px); }
+:focus-visible { outline: 4px solid var(--game-accent); outline-offset: 2px; }
 [data-touch-control] { touch-action: manipulation; user-select: none; }
 
 @media (prefers-reduced-motion: reduce) {

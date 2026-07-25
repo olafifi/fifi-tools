@@ -2,9 +2,10 @@ const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 const revisionedAsset = (path: string, revision: string) =>
   `${asset(path)}?v=${encodeURIComponent(revision)}`;
 const leaderboardApiBase = import.meta.env.VITE_LEADERBOARD_API_BASE || '';
-const gameModule = (path: string, apiBase = '') => {
-  const url = asset(path);
-  return apiBase ? `${url}?leaderboardApi=${encodeURIComponent(apiBase)}` : url;
+const gameModule = (path: string, revision: string, apiBase = '') => {
+  const params = new URLSearchParams({ v: revision });
+  if (apiBase) params.set('leaderboardApi', apiBase);
+  return `${asset(path)}?${params.toString()}`;
 };
 
 export type ToolItem = {
@@ -48,7 +49,7 @@ export const GAMES: GameItem[] = [
     id: '2048',
     name: '2048',
     mascotAsset: asset('icons/game-2048.svg'),
-    modulePath: revisionedAsset('games/2048/index.html', '20260725-score-motion'),
+    modulePath: revisionedAsset('games/2048/index.html', '20260726-enamel-theme'),
     preferredWidth: 820,
     preferredHeight: 760,
     inputMode: 'both',
@@ -58,7 +59,7 @@ export const GAMES: GameItem[] = [
     id: 'sudoku',
     name: '数独',
     mascotAsset: asset('icons/game-sudoku.svg'),
-    modulePath: asset('games/sudoku/index.html'),
+    modulePath: revisionedAsset('games/sudoku/index.html', '20260726-enamel-theme'),
     preferredWidth: 820,
     preferredHeight: 760,
     inputMode: 'both',
@@ -68,7 +69,7 @@ export const GAMES: GameItem[] = [
     id: 'tetris',
     name: '俄罗斯方块',
     mascotAsset: asset('icons/game-tetris.svg'),
-    modulePath: asset('games/tetris/index.html'),
+    modulePath: revisionedAsset('games/tetris/index.html', '20260726-enamel-theme'),
     preferredWidth: 820,
     preferredHeight: 760,
     inputMode: 'both',
@@ -78,7 +79,7 @@ export const GAMES: GameItem[] = [
     id: 'snake',
     name: '贪吃蛇',
     mascotAsset: asset('icons/game-snake.svg'),
-    modulePath: asset('games/snake/index.html'),
+    modulePath: revisionedAsset('games/snake/index.html', '20260726-enamel-theme'),
     preferredWidth: 820,
     preferredHeight: 760,
     inputMode: 'both',
@@ -88,7 +89,7 @@ export const GAMES: GameItem[] = [
     id: 'merge-danbai',
     name: '合成大蛋白',
     mascotAsset: asset('danbai/expect.png'),
-    modulePath: gameModule('games/merge-danbai/index.html', leaderboardApiBase),
+    modulePath: gameModule('games/merge-danbai/index.html', '20260726-enamel-theme', leaderboardApiBase),
     preferredWidth: 820,
     preferredHeight: 760,
     inputMode: 'both',

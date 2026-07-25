@@ -44,3 +44,22 @@ test('match-3 is absent and game pages have no remote runtime assets', () => {
     assert.equal(/(?:src|href)=["']https?:\/\//.test(html), false, game);
   }
 });
+
+test('all themed game entrypoints and changed assets share one cache revision', () => {
+  const revision = '20260726-enamel-theme';
+  const catalog = readFileSync('app/data/catalog.ts', 'utf8');
+  const localStyles = {
+    '2048': 'fifi.css',
+    sudoku: 'style.css',
+    tetris: 'style.css',
+    snake: 'style.css',
+    'merge-danbai': 'style.css'
+  };
+
+  for (const game of games) {
+    assert.match(catalog, new RegExp(`games/${game}/index\\.html[^\\n]+${revision}`));
+    const html = readFileSync(`public/games/${game}/index.html`, 'utf8');
+    assert.match(html, new RegExp(`game-shell\\.css\\?v=${revision}`));
+    assert.match(html, new RegExp(`${localStyles[game].replace('.', '\\.')}\\?v=${revision}`));
+  }
+});
