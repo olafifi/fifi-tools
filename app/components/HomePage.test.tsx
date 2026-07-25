@@ -40,10 +40,12 @@ describe('HomePage', () => {
     await userEvent.click(trigger);
 
     expect(screen.getByRole('dialog', { name: '2048' })).toBeInTheDocument();
-    expect(screen.getByTitle('2048 游戏区域')).toHaveAttribute(
-      'src',
-      '/games/2048/index.html'
-    );
+    const frame = screen.getByTitle('2048 游戏区域');
+    const gameUrl = new URL(frame.getAttribute('src')!, window.location.origin);
+    expect(gameUrl.pathname).toBe('/games/2048/index.html');
+    const revision = gameUrl.searchParams.get('v');
+    expect(revision).not.toBeNull();
+    if (revision) expect(revision).toMatch(/^[a-z0-9-]+$/);
 
     await userEvent.click(screen.getByRole('button', { name: '关闭 2048' }));
 

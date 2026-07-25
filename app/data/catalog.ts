@@ -1,4 +1,6 @@
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+const revisionedAsset = (path: string, revision: string) =>
+  `${asset(path)}?v=${encodeURIComponent(revision)}`;
 const leaderboardApiBase = import.meta.env.VITE_LEADERBOARD_API_BASE || '';
 const gameModule = (path: string, apiBase = '') => {
   const url = asset(path);
@@ -54,7 +56,7 @@ export const GAMES: GameItem[] = [
     id: '2048',
     name: '2048',
     mascotAsset: asset('danbai/blank.png'),
-    modulePath: asset('games/2048/index.html'),
+    modulePath: revisionedAsset('games/2048/index.html', '20260725-score-motion'),
     preferredWidth: 820,
     preferredHeight: 760,
     inputMode: 'both'

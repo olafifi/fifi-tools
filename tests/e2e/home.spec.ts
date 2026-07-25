@@ -123,13 +123,14 @@ test('all five games become ready, respond, restart, and close inline', async ({
     expect(page.url()).toBe(homeUrl);
   }
 
-  await page.route('**/games/2048/index.html', (route) => route.abort());
+  const game2048Route = /\/games\/2048\/index\.html(?:\?.*)?$/;
+  await page.route(game2048Route, (route) => route.abort());
   await page.getByRole('button', { name: '2048', exact: true }).click();
   await expect(page.getByRole('button', { name: '重新开始 2048' })).toBeDisabled();
   await expect(page.getByRole('alert')).toContainText('游戏没有成功加载', { timeout: 9000 });
   await expect(page.getByRole('button', { name: '重新加载 2048' })).toBeVisible();
   await page.getByRole('button', { name: '关闭 2048' }).click();
-  await page.unroute('**/games/2048/index.html');
+  await page.unroute(game2048Route);
 });
 
 test('all five games fit without iframe scrollbars at desktop and mobile sizes', async ({ page }) => {

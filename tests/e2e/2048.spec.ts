@@ -57,6 +57,27 @@ async function seed2048(page: Page, cells: SeedCell[][], score = 0) {
   }, { seededCells: cells, seededScore: score });
 }
 
+test('changed 2048 assets share one cache revision', async ({ page }) => {
+  await page.goto('./games/2048/index.html');
+
+  const changedAssets = [
+    'fifi.css',
+    'keyboard_input_manager.js',
+    'html_actuator.js',
+    'game_manager.js'
+  ];
+  const revisions = await page.evaluate((assetNames) => {
+    const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
+    return assetNames.map((assetName) => {
+      const resource = resources.find((entry) => new URL(entry.name).pathname.endsWith(assetName));
+      return resource ? new URL(resource.name).searchParams.get('v') : null;
+    });
+  }, changedAssets);
+
+  expect(revisions.every(Boolean)).toBe(true);
+  expect(new Set(revisions).size).toBe(1);
+});
+
 test('score cards keep nine-digit values inside equal cards', async ({ page }) => {
   await page.setViewportSize({ width: 820, height: 760 });
   await page.goto('./games/2048/index.html');
