@@ -18,6 +18,8 @@ test('equal non-max tiers merge upward and score', () => {
 });
 
 test('gives every Danbai tier a distinct bubble fill', () => {
+  assert.equal(DANBAI_TIERS[0].fill, 'rgba(226,118,164,.88)');
+  assert.equal(DANBAI_TIERS[1].fill, 'rgba(248,213,228,.84)');
   assert.equal(new Set(DANBAI_TIERS.map((tier) => tier.fill)).size, 11);
   assert.ok(DANBAI_TIERS.every((tier) => tier.stroke === '#574777'));
 });
