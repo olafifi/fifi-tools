@@ -1,19 +1,31 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GAMES } from '../data/catalog';
 import { GameStation } from './GameStation';
 import { HomePage } from './HomePage';
 
 describe('HomePage', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  it('uses the approved FIFI Lab site brand and slogan', () => {
+    render(<HomePage />);
+
+    expect(screen.getByRole('heading', { name: /FIFI Lab/ })).toBeInTheDocument();
+    expect(screen.getByText('菲菲实验站')).toBeInTheDocument();
+    expect(screen.getByText('一些能让生活省点力气的小实验。')).toBeInTheDocument();
+  });
+
   it('shows both production tools and five games', () => {
     render(<HomePage />);
 
-    expect(screen.getByRole('link', { name: /FIFI 图片处理/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /FiFi 图片处理工具/ })).toHaveAttribute(
       'href',
       'https://olafifi.github.io/ui-image-processor/'
     );
-    expect(screen.getByRole('link', { name: /FIFI-Richly/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /FiFi 富文本转换/ })).toHaveAttribute(
       'href',
       'https://olafifi.github.io/rich-text-translator/'
     );
@@ -21,6 +33,31 @@ describe('HomePage', () => {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();
     }
     expect(screen.queryByText('三消')).not.toBeInTheDocument();
+  });
+
+  it('tracks total and completed todo items and caps the list at eight', async () => {
+    render(<HomePage />);
+
+    const toggle = screen.getByRole('button', { name: '拉开 To-Do List' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByText('我有 3 条待办 · 0 条完成')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: '待办内容' })).not.toBeInTheDocument();
+
+    await userEvent.click(toggle);
+    expect(screen.getByRole('button', { name: '收回 To-Do List' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
+
+    await userEvent.click(screen.getAllByRole('button', { name: '标记为已完成' })[0]);
+    expect(screen.getByText('我有 3 条待办 · 1 条完成')).toBeInTheDocument();
+
+    const add = screen.getByRole('button', { name: '新增任务' });
+    for (let i = 0; i < 5; i += 1) await userEvent.click(add);
+
+    expect(screen.getByText('我有 8 条待办 · 1 条完成')).toBeInTheDocument();
+    expect(add).toBeDisabled();
+    expect(screen.getAllByRole('textbox', { name: '待办内容' })).toHaveLength(8);
   });
 
   it('passes the selected game to the host', async () => {

@@ -1,11 +1,11 @@
 export function BrandNav() {
   return (
-    <nav className="brand-nav" aria-label="主导航">
-      <a className="brand-mark" href="#top">Fifi 工具站</a>
-      <div className="brand-links">
-        <a href="#tools">所有工具</a>
-        <a href="#about">关于 Fifi</a>
-      </div>
-    </nav>
+    <header className="fifi-topbar">
+      <a className="fifi-brand" href="#top" aria-label="FIFI Lab 首页">
+        <i aria-hidden="true">F</i>
+        <span>FIFI Lab</span>
+      </a>
+      <div className="fifi-meta">TOOLS · PLAY · SMALL EXPERIMENTS</div>
+    </header>
   );
 }

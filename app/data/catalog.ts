@@ -9,13 +9,10 @@ const gameModule = (path: string, apiBase = '') => {
 
 export type ToolItem = {
   id: string;
-  projectNo: string;
   name: string;
-  description: string;
   href: string;
-  tags: string[];
-  mascotAsset: string;
-  accent: 'white' | 'pink';
+  thumbnailAsset: string;
+  accent: 'red' | 'jade';
 };
 
 export type GameItem = {
@@ -31,23 +28,17 @@ export type GameItem = {
 export const TOOLS: ToolItem[] = [
   {
     id: 'image-processor',
-    projectNo: 'PROJECT 01',
-    name: 'FIFI 图片处理',
-    description: '在浏览器本地完成抠图、裁剪、格式转换和批量导出。',
+    name: 'FiFi 图片处理工具',
     href: 'https://olafifi.github.io/ui-image-processor/',
-    tags: ['IMAGE', 'LOCAL', 'BATCH'],
-    mascotAsset: asset('danbai/cool.png'),
-    accent: 'white'
+    thumbnailAsset: asset('tools/image-processor-preview.png'),
+    accent: 'red'
   },
   {
     id: 'rich-text',
-    projectNo: 'PROJECT 02',
-    name: 'FIFI-Richly',
-    description: '一边可视化编辑，一边生成方便复制的富文本标签。',
+    name: 'FiFi 富文本转换',
     href: 'https://olafifi.github.io/rich-text-translator/',
-    tags: ['TEXT', 'SYNC'],
-    mascotAsset: asset('danbai/praise-sun.png'),
-    accent: 'pink'
+    thumbnailAsset: asset('tools/rich-text-preview.png'),
+    accent: 'jade'
   }
 ];
 
@@ -55,7 +46,7 @@ export const GAMES: GameItem[] = [
   {
     id: '2048',
     name: '2048',
-    mascotAsset: asset('danbai/blank.png'),
+    mascotAsset: asset('icons/game-2048.svg'),
     modulePath: revisionedAsset('games/2048/index.html', '20260725-score-motion'),
     preferredWidth: 820,
     preferredHeight: 760,
@@ -64,7 +55,7 @@ export const GAMES: GameItem[] = [
   {
     id: 'sudoku',
     name: '数独',
-    mascotAsset: asset('danbai/eye-roll.png'),
+    mascotAsset: asset('icons/game-sudoku.svg'),
     modulePath: asset('games/sudoku/index.html'),
     preferredWidth: 820,
     preferredHeight: 760,
@@ -73,7 +64,7 @@ export const GAMES: GameItem[] = [
   {
     id: 'tetris',
     name: '俄罗斯方块',
-    mascotAsset: asset('danbai/rage.png'),
+    mascotAsset: asset('icons/game-tetris.svg'),
     modulePath: asset('games/tetris/index.html'),
     preferredWidth: 820,
     preferredHeight: 760,
@@ -82,7 +73,7 @@ export const GAMES: GameItem[] = [
   {
     id: 'snake',
     name: '贪吃蛇',
-    mascotAsset: asset('danbai/tempted.png'),
+    mascotAsset: asset('icons/game-snake.svg'),
     modulePath: asset('games/snake/index.html'),
     preferredWidth: 820,
     preferredHeight: 760,

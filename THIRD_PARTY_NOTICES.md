@@ -1,6 +1,6 @@
 # Third-party notices
 
-The following MIT-licensed projects are vendored at fixed commits and adapted for local, offline use inside Fifi 工具站. Their full license texts are preserved under `public/games/licenses/`.
+The following MIT-licensed projects are vendored at fixed commits and adapted for local, offline use inside FIFI Lab. Their full license texts are preserved under `public/games/licenses/`.
 
 | Project | Source and pinned commit | Files used | Fifi changes |
 |---|---|---|---|

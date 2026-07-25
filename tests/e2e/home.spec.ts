@@ -26,9 +26,12 @@ test('home stays usable without horizontal overflow at key widths', async ({ pag
     await page.setViewportSize(viewport);
     await page.goto('./');
 
-    await expect(page.getByRole('heading', { name: '智力检测站' })).toBeVisible();
-    await expect(page.getByRole('link', { name: /FIFI 图片处理/ })).toBeVisible();
-    await expect(page.getByRole('link', { name: /FIFI-Richly/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /智力\s*检测站/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'FiFi 图片处理工具' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'FiFi 富文本转换' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'FIFI Lab / 菲菲实验站' })).toBeVisible();
+    await expect(page.getByText('一些能让生活省点力气的小实验。')).toBeVisible();
+    await expect(page.locator('.count-curve')).toHaveText('我有 3 条待办 · 0 条完成');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
   }
 });
@@ -43,29 +46,26 @@ test('desktop home uses the viewport and keeps the game station on the left', as
     await page.goto('./');
 
     const shellBox = await page.locator('.site-shell').boundingBox();
-    const contentBox = await page.locator('.home-content').boundingBox();
     const stationBox = await page.locator('.game-station').boundingBox();
-    if (!shellBox || !contentBox || !stationBox) throw new Error('Home layout boxes are missing.');
+    const toolsBox = await page.locator('.tool-cluster').boundingBox();
+    const heroBox = await page.locator('.lab-hero').boundingBox();
+    if (!shellBox || !stationBox || !toolsBox || !heroBox) throw new Error('Home layout boxes are missing.');
 
     expect(shellBox.x).toBeLessThanOrEqual(17);
     expect(viewport.width - shellBox.x - shellBox.width).toBeLessThanOrEqual(17);
-    expect(Math.abs(stationBox.x - contentBox.x)).toBeLessThanOrEqual(1);
-    expect(stationBox.width).toBeGreaterThanOrEqual(269);
-    expect(stationBox.width).toBeLessThanOrEqual(321);
+    expect(stationBox.x).toBeLessThanOrEqual(40);
+    expect(stationBox.width).toBeGreaterThanOrEqual(100);
+    expect(stationBox.width).toBeLessThanOrEqual(120);
+    expect(toolsBox.x).toBeGreaterThan(stationBox.x + stationBox.width);
+    expect(heroBox.x).toBeGreaterThan(toolsBox.x);
 
     const cardWidths = await page.locator('.tool-card').evaluateAll((cards) =>
       cards.map((card) => card.getBoundingClientRect().width)
     );
     expect(cardWidths).toHaveLength(2);
     expect(Math.abs(cardWidths[0] - cardWidths[1])).toBeLessThanOrEqual(1);
-    expect(cardWidths[0]).toBeGreaterThan(viewport.width >= 1440 ? 500 : 300);
+    expect(cardWidths[0]).toBeGreaterThan(220);
   }
-
-  await page.setViewportSize({ width: 900, height: 900 });
-  await page.goto('./');
-  const contentWidth = await page.locator('.home-content').evaluate((node) => node.getBoundingClientRect().width);
-  const stationWidth = await page.locator('.game-station').evaluate((node) => node.getBoundingClientRect().width);
-  expect(Math.abs(contentWidth - stationWidth)).toBeLessThanOrEqual(1);
 });
 
 const games = [

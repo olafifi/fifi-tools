@@ -1,11 +1,13 @@
 import { useRef, useState } from 'react';
 import type { GameItem } from '../data/catalog';
-import { AboutFifi } from './AboutFifi';
 import { BrandNav } from './BrandNav';
+import { CatCursor } from './CatCursor';
 import { GameStation } from './GameStation';
 import { GameWindow } from './GameWindow';
 import { Hero } from './Hero';
+import { InteractiveField } from './InteractiveField';
 import { ToolGrid } from './ToolGrid';
+import { ZipperTodo } from './ZipperTodo';
 
 export function HomePage() {
   const [selectedGame, setSelectedGame] = useState<GameItem | null>(null);
@@ -23,20 +25,18 @@ export function HomePage() {
 
   return (
     <div className="site-shell">
+      <InteractiveField />
+      <div className="fifi-noise" aria-hidden="true" />
+      <div className="fifi-frame" aria-hidden="true" />
       <BrandNav />
-      <main>
+      <main className="fifi-workspace">
+        <GameStation onOpenGame={openGame} />
+        <ToolGrid />
         <Hero />
-        <div className="home-content">
-          <GameStation onOpenGame={openGame} />
-          <ToolGrid />
-        </div>
-        <AboutFifi />
       </main>
+      <ZipperTodo />
+      <CatCursor />
       <GameWindow game={selectedGame} onClose={closeGame} />
-      <footer>
-        <span>© 2026 Fifi Lab</span>
-        <span>2 个实用工具 · 5 个快乐小游戏</span>
-      </footer>
     </div>
   );
 }

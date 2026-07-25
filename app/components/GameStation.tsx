@@ -1,11 +1,13 @@
 import { GAMES, type GameItem } from '../data/catalog';
+import { GameIcon } from './GameIcon';
 
 export function GameStation({ onOpenGame }: { onOpenGame: (game: GameItem) => void }) {
   return (
     <aside className="game-station" aria-labelledby="game-station-title">
-      <span className="eyebrow">FUN ZONE</span>
-      <h2 id="game-station-title">智力检测站</h2>
-      <p>纯娱乐，检测结果不具参考价值。</p>
+      <div className="station-head">
+        <small>PLAY / 05</small>
+        <h2 id="game-station-title"><span>智力</span><span>检测站</span></h2>
+      </div>
       <div className="game-list">
         {GAMES.map((game) => (
           <button
@@ -14,13 +16,11 @@ export function GameStation({ onOpenGame }: { onOpenGame: (game: GameItem) => vo
             onClick={() => onOpenGame(game)}
             type="button"
           >
-            <img alt="" aria-hidden="true" src={game.mascotAsset} />
+            <span className="game-icon" aria-hidden="true"><GameIcon id={game.id} /></span>
             <span>{game.name}</span>
-            <b aria-hidden="true">↗</b>
           </button>
         ))}
       </div>
-      <small>想放空一下的时候，点开玩一局。</small>
     </aside>
   );
 }
