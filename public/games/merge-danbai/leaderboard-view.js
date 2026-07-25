@@ -42,11 +42,16 @@ export function createLeaderboardView({ status, list, form, input, submit, submi
       submitStatus.textContent = message;
     },
     setSubmitResult(rank) {
-      submit.disabled = false;
-      input.disabled = false;
+      submit.disabled = true;
+      input.disabled = true;
       submitStatus.textContent = rank <= 10
         ? `已进入第 ${rank} 名！`
         : '成绩已记录，本次暂未进入前 10。';
+    },
+    resetSubmission() {
+      submit.disabled = false;
+      input.disabled = false;
+      submitStatus.textContent = '';
     }
   };
 }

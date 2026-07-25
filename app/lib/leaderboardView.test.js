@@ -38,9 +38,30 @@ describe('leaderboard view', () => {
     view.setSubmitPending(true);
     expect(document.querySelector('[data-submit]')).toBeDisabled();
     view.setSubmitError('请重试');
+    expect(document.querySelector('[data-input]')).toBeEnabled();
+    expect(document.querySelector('[data-submit]')).toBeEnabled();
     expect(document.querySelector('[data-submit-status]')).toHaveTextContent('请重试');
     view.setSubmitResult(12);
     expect(document.querySelector('[data-submit-status]')).toHaveTextContent('暂未进入前 10');
+  });
+
+  it('keeps controls locked after a successful submission', () => {
+    const view = setup();
+    view.setSubmitPending(true);
+    view.setSubmitResult(3);
+    expect(document.querySelector('[data-input]')).toBeDisabled();
+    expect(document.querySelector('[data-submit]')).toBeDisabled();
+    expect(document.querySelector('[data-submit-status]')).toHaveTextContent('第 3 名');
+  });
+
+  it('resets submission controls for a new game', () => {
+    const view = setup();
+    view.setSubmitPending(true);
+    view.setSubmitResult(3);
+    view.resetSubmission();
+    expect(document.querySelector('[data-input]')).toBeEnabled();
+    expect(document.querySelector('[data-submit]')).toBeEnabled();
+    expect(document.querySelector('[data-submit-status]')).toHaveTextContent('');
   });
 
   it('shows a successful top-ten rank after submission', () => {
