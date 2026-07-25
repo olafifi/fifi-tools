@@ -205,6 +205,81 @@ test('leaderboard loads, degrades gracefully, and opens as a mobile sheet', asyn
   await expect(page.getByText('重连蛋白')).toBeVisible();
 });
 
+test('allows only one successful score submission per game', async ({ page }) => {
+  const apiPattern = 'http://scores.test/api/v1/leaderboards/merge-danbai**';
+  const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
+  let postCount = 0;
+  await page.route(apiPattern, async (route) => {
+    const method = route.request().method();
+    if (method === 'OPTIONS') {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          ...corsHeaders,
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+        }
+      });
+      return;
+    }
+    if (method === 'GET') {
+      await route.fulfill({
+        contentType: 'application/json',
+        headers: corsHeaders,
+        body: JSON.stringify({ entries: [], cutoffScore: 0 })
+      });
+      return;
+    }
+    postCount += 1;
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      headers: corsHeaders,
+      body: JSON.stringify({
+        saved: {
+          nickname: `测试蛋白${postCount}`,
+          score: 0,
+          achievedAt: '2026-07-25T00:00:00.000Z'
+        },
+        rank: postCount,
+        entries: [],
+        cutoffScore: 0
+      })
+    });
+  });
+
+  await page.goto('./games/merge-danbai/index.html?leaderboardApi=http%3A%2F%2Fscores.test');
+  await page.evaluate(() => {
+    const input = document.querySelector('[data-nickname]') as HTMLInputElement;
+    input.value = '第一次';
+    (document.querySelector('[data-qualifying-form]') as HTMLFormElement).requestSubmit();
+  });
+  await expect.poll(() => postCount).toBe(1);
+  await expect(page.locator('[data-nickname]')).toBeDisabled();
+  await expect(page.locator('[data-submit-score]')).toBeDisabled();
+
+  await page.evaluate(() => {
+    const input = document.querySelector('[data-nickname]') as HTMLInputElement;
+    const submit = document.querySelector('[data-submit-score]') as HTMLButtonElement;
+    input.disabled = false;
+    submit.disabled = false;
+    input.value = '换名重复';
+    (document.querySelector('[data-qualifying-form]') as HTMLFormElement).requestSubmit();
+  });
+  await page.waitForTimeout(100);
+  expect(postCount).toBe(1);
+
+  await page.locator('[data-local-restart]').evaluate((button) => {
+    (button as HTMLButtonElement).click();
+  });
+  await page.evaluate(() => {
+    const input = document.querySelector('[data-nickname]') as HTMLInputElement;
+    input.value = '新一局';
+    (document.querySelector('[data-qualifying-form]') as HTMLFormElement).requestSubmit();
+  });
+  await expect.poll(() => postCount).toBe(2);
+});
+
 test('configured leaderboard origin is passed only to the merge frame', async ({ page }) => {
   const apiBase = process.env.VITE_LEADERBOARD_API_BASE;
   test.skip(!apiBase, 'This build-contract check requires VITE_LEADERBOARD_API_BASE.');

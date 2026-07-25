@@ -57,6 +57,8 @@ let currentTier = 0;
 let nextTier = 1;
 let canDrop = true;
 let gameOver = false;
+let submissionPending = false;
+let scoreSubmitted = false;
 let destroyed = false;
 let dangerSince = null;
 let leaderboardState = {
@@ -243,12 +245,12 @@ function restart() {
   nextTier = randomStarterTier();
   canDrop = true;
   gameOver = false;
+  submissionPending = false;
+  scoreSubmitted = false;
   dangerSince = null;
   runner.enabled = true;
   qualifyingForm.hidden = true;
-  nicknameInput.disabled = false;
-  submitScore.disabled = false;
-  submitStatus.textContent = '';
+  leaderboardView.resetSubmission();
   resetGameOverView({
     guide,
     panel: gameOverPanel,
@@ -275,7 +277,8 @@ stage.addEventListener('pointerdown', onPointerDown);
 localRestart.addEventListener('click', restart);
 qualifyingForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  if (!leaderboardClient) return;
+  if (!leaderboardClient || submissionPending || scoreSubmitted) return;
+  submissionPending = true;
   leaderboardView.setSubmitPending(true);
   try {
     const result = await leaderboardClient.submit({
@@ -288,9 +291,12 @@ qualifyingForm.addEventListener('submit', async (event) => {
       available: true
     };
     leaderboardView.render(result.entries);
+    scoreSubmitted = true;
     leaderboardView.setSubmitResult(result.rank);
   } catch (error) {
     leaderboardView.setSubmitError(error?.message || '提交失败，请重试。');
+  } finally {
+    submissionPending = false;
   }
 });
 openLeaderboard.addEventListener('click', () => {
