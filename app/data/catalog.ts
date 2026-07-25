@@ -23,6 +23,7 @@ export type GameItem = {
   preferredWidth: number;
   preferredHeight: number;
   inputMode: 'keyboard' | 'pointer' | 'both';
+  theme: 'berry' | 'jade' | 'gold' | 'brick' | 'plum';
 };
 
 export const TOOLS: ToolItem[] = [
@@ -50,7 +51,8 @@ export const GAMES: GameItem[] = [
     modulePath: revisionedAsset('games/2048/index.html', '20260725-score-motion'),
     preferredWidth: 820,
     preferredHeight: 760,
-    inputMode: 'both'
+    inputMode: 'both',
+    theme: 'berry'
   },
   {
     id: 'sudoku',
@@ -59,7 +61,8 @@ export const GAMES: GameItem[] = [
     modulePath: asset('games/sudoku/index.html'),
     preferredWidth: 820,
     preferredHeight: 760,
-    inputMode: 'both'
+    inputMode: 'both',
+    theme: 'jade'
   },
   {
     id: 'tetris',
@@ -68,7 +71,8 @@ export const GAMES: GameItem[] = [
     modulePath: asset('games/tetris/index.html'),
     preferredWidth: 820,
     preferredHeight: 760,
-    inputMode: 'both'
+    inputMode: 'both',
+    theme: 'gold'
   },
   {
     id: 'snake',
@@ -77,7 +81,8 @@ export const GAMES: GameItem[] = [
     modulePath: asset('games/snake/index.html'),
     preferredWidth: 820,
     preferredHeight: 760,
-    inputMode: 'both'
+    inputMode: 'both',
+    theme: 'brick'
   },
   {
     id: 'merge-danbai',
@@ -86,6 +91,7 @@ export const GAMES: GameItem[] = [
     modulePath: gameModule('games/merge-danbai/index.html', leaderboardApiBase),
     preferredWidth: 820,
     preferredHeight: 760,
-    inputMode: 'both'
+    inputMode: 'both',
+    theme: 'plum'
   }
 ];

@@ -91,7 +91,10 @@ describe('HomePage', () => {
 
     await userEvent.click(trigger);
 
-    expect(screen.getByRole('dialog', { name: '2048' })).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog', { name: '2048' });
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveAttribute('data-game-theme', 'berry');
+    expect(dialog).toHaveClass('game-window--berry');
     const frame = screen.getByTitle('2048 游戏区域');
     const gameUrl = new URL(frame.getAttribute('src')!, window.location.origin);
     expect(gameUrl.pathname).toBe('/games/2048/index.html');

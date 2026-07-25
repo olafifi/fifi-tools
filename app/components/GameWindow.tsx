@@ -90,7 +90,8 @@ export function GameWindow({
   return (
     <dialog
       aria-labelledby="game-window-title"
-      className="game-window"
+      className={`game-window game-window--${game.theme}`}
+      data-game-theme={game.theme}
       onCancel={(event) => {
         event.preventDefault();
         close();
