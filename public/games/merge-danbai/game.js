@@ -57,7 +57,8 @@ let currentTier = 0;
 let nextTier = 1;
 let canDrop = true;
 let gameOver = false;
-let submissionPending = false;
+let gameRunId = 0;
+let activeSubmission = null;
 let scoreSubmitted = false;
 let destroyed = false;
 let dangerSince = null;
@@ -236,6 +237,8 @@ function finishGame() {
 }
 
 function restart() {
+  gameRunId += 1;
+  activeSubmission = null;
   Composite.clear(engine.world, false, true);
   Composite.add(engine.world, makeWalls());
   merging.clear();
@@ -245,7 +248,6 @@ function restart() {
   nextTier = randomStarterTier();
   canDrop = true;
   gameOver = false;
-  submissionPending = false;
   scoreSubmitted = false;
   dangerSince = null;
   runner.enabled = true;
@@ -277,27 +279,35 @@ stage.addEventListener('pointerdown', onPointerDown);
 localRestart.addEventListener('click', restart);
 qualifyingForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  if (!leaderboardClient || submissionPending || scoreSubmitted) return;
-  submissionPending = true;
+  if (!leaderboardClient || activeSubmission || scoreSubmitted) return;
+  const submission = { gameRunId };
+  activeSubmission = submission;
   leaderboardView.setSubmitPending(true);
+
+  let result;
   try {
-    const result = await leaderboardClient.submit({
+    result = await leaderboardClient.submit({
       nickname: nicknameInput.value,
       score
     });
-    leaderboardState = {
-      entries: result.entries,
-      cutoffScore: result.cutoffScore,
-      available: true
-    };
-    leaderboardView.render(result.entries);
-    scoreSubmitted = true;
-    leaderboardView.setSubmitResult(result.rank);
   } catch (error) {
+    if (activeSubmission !== submission || submission.gameRunId !== gameRunId) return;
+    activeSubmission = null;
     leaderboardView.setSubmitError(error?.message || '提交失败，请重试。');
-  } finally {
-    submissionPending = false;
+    return;
   }
+
+  if (activeSubmission !== submission || submission.gameRunId !== gameRunId) return;
+  scoreSubmitted = true;
+  activeSubmission = null;
+
+  const entries = Array.isArray(result?.entries) ? result.entries : leaderboardState.entries;
+  const cutoffScore = Number.isFinite(result?.cutoffScore)
+    ? result.cutoffScore
+    : leaderboardState.cutoffScore;
+  leaderboardState = { entries, cutoffScore, available: true };
+  leaderboardView.setSubmitResult(Number.isInteger(result?.rank) ? result.rank : 11);
+  leaderboardView.render(entries);
 });
 openLeaderboard.addEventListener('click', () => {
   mergeShell.classList.add('is-leaderboard-open');

@@ -280,6 +280,179 @@ test('allows only one successful score submission per game', async ({ page }) =>
   await expect.poll(() => postCount).toBe(2);
 });
 
+test('ignores a previous game submission that fails after restart', async ({ page }) => {
+  const apiPattern = 'http://scores.test/api/v1/leaderboards/merge-danbai**';
+  const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
+  let postCount = 0;
+  let releaseFirst!: () => void;
+  let releaseSecond!: () => void;
+  let markFirstFulfilled!: () => void;
+  let markSecondFulfilled!: () => void;
+  const firstGate = new Promise<void>((resolve) => { releaseFirst = resolve; });
+  const secondGate = new Promise<void>((resolve) => { releaseSecond = resolve; });
+  const firstFulfilled = new Promise<void>((resolve) => { markFirstFulfilled = resolve; });
+  const secondFulfilled = new Promise<void>((resolve) => { markSecondFulfilled = resolve; });
+
+  await page.route(apiPattern, async (route) => {
+    const method = route.request().method();
+    if (method === 'OPTIONS') {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          ...corsHeaders,
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+        }
+      });
+      return;
+    }
+    if (method === 'GET') {
+      await route.fulfill({
+        contentType: 'application/json',
+        headers: corsHeaders,
+        body: JSON.stringify({ entries: [], cutoffScore: 0 })
+      });
+      return;
+    }
+
+    postCount += 1;
+    const requestNumber = postCount;
+    if (requestNumber === 1) {
+      await firstGate;
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        headers: corsHeaders,
+        body: JSON.stringify({ error: '旧的一局提交失败' })
+      });
+      markFirstFulfilled();
+      return;
+    }
+    if (requestNumber === 2) {
+      await secondGate;
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        headers: corsHeaders,
+        body: JSON.stringify({
+          saved: { nickname: '新一局', score: 0, achievedAt: '2026-07-25T00:00:00.000Z' },
+          rank: 2,
+          entries: [],
+          cutoffScore: 0
+        })
+      });
+      markSecondFulfilled();
+      return;
+    }
+
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      headers: corsHeaders,
+      body: JSON.stringify({ rank: requestNumber, entries: [], cutoffScore: 0 })
+    });
+  });
+
+  await page.goto('./games/merge-danbai/index.html?leaderboardApi=http%3A%2F%2Fscores.test');
+  await page.evaluate(() => {
+    const input = document.querySelector('[data-nickname]') as HTMLInputElement;
+    input.value = '第一局';
+    (document.querySelector('[data-qualifying-form]') as HTMLFormElement).requestSubmit();
+  });
+  await expect.poll(() => postCount).toBe(1);
+
+  await page.locator('[data-local-restart]').evaluate((button) => {
+    (button as HTMLButtonElement).click();
+  });
+  await page.evaluate(() => {
+    const input = document.querySelector('[data-nickname]') as HTMLInputElement;
+    input.value = '新一局';
+    (document.querySelector('[data-qualifying-form]') as HTMLFormElement).requestSubmit();
+  });
+  await expect.poll(() => postCount).toBe(2);
+
+  releaseFirst();
+  await firstFulfilled;
+  await page.waitForTimeout(100);
+  await expect(page.locator('[data-nickname]')).toBeDisabled();
+  await expect(page.locator('[data-submit-score]')).toBeDisabled();
+  await expect(page.locator('[data-submit-status]')).toHaveText('正在提交…');
+
+  await page.evaluate(() => {
+    const input = document.querySelector('[data-nickname]') as HTMLInputElement;
+    const submit = document.querySelector('[data-submit-score]') as HTMLButtonElement;
+    input.disabled = false;
+    submit.disabled = false;
+    input.value = '旧请求不应解锁';
+    (document.querySelector('[data-qualifying-form]') as HTMLFormElement).requestSubmit();
+  });
+  await page.waitForTimeout(100);
+  expect(postCount).toBe(2);
+
+  releaseSecond();
+  await secondFulfilled;
+  await expect(page.locator('[data-submit-status]')).toContainText('第 2 名');
+  await expect(page.locator('[data-nickname]')).toBeDisabled();
+});
+
+test('keeps a successful score locked when the response list is malformed', async ({ page }) => {
+  const apiPattern = 'http://scores.test/api/v1/leaderboards/merge-danbai**';
+  const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
+  let postCount = 0;
+  await page.route(apiPattern, async (route) => {
+    const method = route.request().method();
+    if (method === 'OPTIONS') {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          ...corsHeaders,
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+        }
+      });
+      return;
+    }
+    if (method === 'GET') {
+      await route.fulfill({
+        contentType: 'application/json',
+        headers: corsHeaders,
+        body: JSON.stringify({ entries: [], cutoffScore: 0 })
+      });
+      return;
+    }
+
+    postCount += 1;
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      headers: corsHeaders,
+      body: JSON.stringify({ rank: 1, entries: null, cutoffScore: 0 })
+    });
+  });
+
+  await page.goto('./games/merge-danbai/index.html?leaderboardApi=http%3A%2F%2Fscores.test');
+  await page.evaluate(() => {
+    const input = document.querySelector('[data-nickname]') as HTMLInputElement;
+    input.value = '已经收录';
+    (document.querySelector('[data-qualifying-form]') as HTMLFormElement).requestSubmit();
+  });
+  await expect.poll(() => postCount).toBe(1);
+  await expect(page.locator('[data-submit-status]')).toContainText('第 1 名');
+  await expect(page.locator('[data-nickname]')).toBeDisabled();
+  await expect(page.locator('[data-submit-score]')).toBeDisabled();
+
+  await page.evaluate(() => {
+    const input = document.querySelector('[data-nickname]') as HTMLInputElement;
+    const submit = document.querySelector('[data-submit-score]') as HTMLButtonElement;
+    input.disabled = false;
+    submit.disabled = false;
+    input.value = '不该再提交';
+    (document.querySelector('[data-qualifying-form]') as HTMLFormElement).requestSubmit();
+  });
+  await page.waitForTimeout(100);
+  expect(postCount).toBe(1);
+});
+
 test('configured leaderboard origin is passed only to the merge frame', async ({ page }) => {
   const apiBase = process.env.VITE_LEADERBOARD_API_BASE;
   test.skip(!apiBase, 'This build-contract check requires VITE_LEADERBOARD_API_BASE.');
