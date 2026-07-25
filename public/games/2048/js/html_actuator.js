@@ -104,24 +104,38 @@ HTMLActuator.prototype.positionClass = function (position) {
 };
 
 HTMLActuator.prototype.updateScore = function (score) {
+  var scoreCard = this.scoreContainer.parentNode;
+  var previousAddition = scoreCard.querySelector(".score-addition");
+  if (previousAddition) {
+    scoreCard.removeChild(previousAddition);
+  }
   this.clearContainer(this.scoreContainer);
 
   var difference = score - this.score;
   this.score = score;
 
   this.scoreContainer.textContent = this.score;
+  this.updateScoreSize(this.scoreContainer, this.score);
 
   if (difference > 0) {
     var addition = document.createElement("div");
     addition.classList.add("score-addition");
     addition.textContent = "+" + difference;
 
-    this.scoreContainer.appendChild(addition);
+    scoreCard.appendChild(addition);
   }
 };
 
 HTMLActuator.prototype.updateBestScore = function (bestScore) {
   this.bestContainer.textContent = bestScore;
+  this.updateScoreSize(this.bestContainer, bestScore);
+};
+
+HTMLActuator.prototype.updateScoreSize = function (container, value) {
+  var digits = String(value).length;
+  container.setAttribute("data-digits", String(digits));
+  container.classList.toggle("score-value--compact", digits >= 7);
+  container.classList.toggle("score-value--tiny", digits >= 9);
 };
 
 HTMLActuator.prototype.message = function (won) {

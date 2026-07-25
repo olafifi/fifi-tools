@@ -12,9 +12,15 @@
     <main class="container">
       <div class="heading">
         <h1 class="title">2048</h1>
-        <div class="scores-container" aria-label="分数">
-          <div class="score-container">0</div>
-          <div class="best-container">0</div>
+        <div class="scores-container" aria-label="游戏分数">
+          <div class="score-card score-card--current">
+            <span class="score-card__label">当前分数</span>
+            <strong class="score-container" data-digits="1">0</strong>
+          </div>
+          <div class="score-card score-card--best">
+            <span class="score-card__label">最高分</span>
+            <strong class="best-container" data-digits="1">0</strong>
+          </div>
         </div>
       </div>
       <div class="above-game">
