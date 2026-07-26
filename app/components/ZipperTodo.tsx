@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { buildZipperGeometry } from '../lib/zipperGeometry';
 
 type TodoItem = { id: string; text: string; done: boolean };
-type DragState = { id: number; x: number; y: number; moved: boolean };
+type DragState = { id: number; x: number; y: number; moved: boolean; startedExpanded: boolean };
 
 const STORAGE_KEY = 'fifi-zipper-flap-todo-v1';
 const INITIAL_GEOMETRY = buildZipperGeometry(0);
@@ -53,6 +53,7 @@ export function ZipperTodo() {
   const animationFrameRef = useRef(0);
   const dragRef = useRef<DragState | null>(null);
   const suppressClickRef = useRef(false);
+  const clickStartedExpandedRef = useRef<boolean | null>(null);
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
@@ -148,7 +149,11 @@ export function ZipperTodo() {
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture?.(event.pointerId);
     if (drag.moved) {
       suppressClickRef.current = true;
+      clickStartedExpandedRef.current = null;
       animateTo(progressRef.current >= 0.48 ? 1 : 0);
+    } else if (event.type === 'pointercancel') {
+      clickStartedExpandedRef.current = null;
+      animateTo(drag.startedExpanded ? 1 : 0);
     }
   };
 
@@ -211,6 +216,14 @@ export function ZipperTodo() {
             >×</button>
           </div>
         ))}
+        <button
+          aria-label="新增任务"
+          className="add-task"
+          disabled={todos.length >= 8}
+          onClick={() => setTodos((current) => current.length >= 8 ? current : [...current, { id: createId(), text: '', done: false }])}
+          tabIndex={interactive ? 0 : -1}
+          type="button"
+        >＋</button>
       </div>
 
       <button
@@ -222,17 +235,15 @@ export function ZipperTodo() {
             suppressClickRef.current = false;
             return;
           }
-          animateTo(expanded ? 0 : 1);
+          const startedExpanded = clickStartedExpandedRef.current;
+          clickStartedExpandedRef.current = null;
+          animateTo((startedExpanded ?? expanded) ? 0 : 1);
         }}
         onPointerCancel={endDrag}
         onPointerDown={(event) => {
           window.cancelAnimationFrame(animationFrameRef.current);
-          setExpanded(false);
-          setInteractive(false);
-          setOpening(false);
-          setClosing(false);
-          setDragging(true);
-          dragRef.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+          clickStartedExpandedRef.current = expanded;
+          dragRef.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false, startedExpanded: expanded };
           event.currentTarget.setPointerCapture?.(event.pointerId);
           event.currentTarget.classList.add('dragging');
           event.preventDefault();
@@ -240,21 +251,22 @@ export function ZipperTodo() {
         onPointerMove={(event) => {
           const drag = dragRef.current;
           if (!drag || event.pointerId !== drag.id) return;
-          if (Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > 5) drag.moved = true;
+          if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > 5) {
+            drag.moved = true;
+            clickStartedExpandedRef.current = null;
+            setExpanded(false);
+            setInteractive(false);
+            setOpening(false);
+            setClosing(false);
+            setDragging(true);
+          }
+          if (!drag.moved) return;
           geometry(pointerProgress(event));
         }}
         onPointerUp={endDrag}
         ref={pullRef}
         type="button"
       />
-      <button
-        aria-label="新增任务"
-        className="add-task"
-        disabled={todos.length >= 8}
-        onClick={() => setTodos((current) => current.length >= 8 ? current : [...current, { id: createId(), text: '', done: false }])}
-        tabIndex={interactive ? 0 : -1}
-        type="button"
-      >＋</button>
     </section>
   );
 }

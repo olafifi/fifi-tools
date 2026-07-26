@@ -75,6 +75,19 @@ describe('HomePage', () => {
     expect(screen.getAllByRole('textbox', { name: '待办内容' })).toHaveLength(8);
   });
 
+  it('closes the zipper by click and keeps the add button in the clipped task layer', async () => {
+    const { container } = render(<HomePage />);
+    const open = screen.getByRole('button', { name: '拉开 To-Do List' });
+
+    await userEvent.click(open);
+    const close = screen.getByRole('button', { name: '收回 To-Do List' });
+    expect(close).toHaveAttribute('aria-expanded', 'true');
+
+    await userEvent.click(close);
+    expect(screen.getByRole('button', { name: '拉开 To-Do List' })).toHaveAttribute('aria-expanded', 'false');
+    expect(container.querySelector('.add-task')?.parentElement).toHaveClass('todo-tasks');
+  });
+
   it('passes the selected game to the host', async () => {
     const onOpenGame = vi.fn();
     render(<GameStation onOpenGame={onOpenGame} />);

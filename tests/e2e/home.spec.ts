@@ -119,6 +119,32 @@ test('clock uses local 24-hour time and the zipper clips todo content', async ({
   expect(closingPath).not.toBe(openPath);
 });
 
+test('zipper click closes after a complete open and the add button waits for interactivity', async ({ page }) => {
+  await page.goto('./');
+  const root = page.locator('.todo-root');
+  const pull = page.locator('.zip-pull');
+  const add = page.getByRole('button', { name: '新增任务' });
+
+  await pull.click();
+  await expect(root).toHaveClass(/interactive/);
+  await expect(add).toBeVisible();
+  expect(await add.evaluate((node) => node.parentElement?.classList.contains('todo-tasks'))).toBe(true);
+
+  await pull.click();
+  await expect(root).not.toHaveClass(/open/);
+  await expect(add).toBeHidden();
+
+  const closedPull = await pull.boundingBox();
+  if (!closedPull) throw new Error('Closed zipper pull is not visible.');
+  await page.mouse.move(closedPull.x + closedPull.width / 2, closedPull.y + closedPull.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(closedPull.x - 150, closedPull.y + 130, { steps: 5 });
+  await expect(root).toHaveClass(/open/);
+  await expect(root).not.toHaveClass(/interactive/);
+  await expect(add).toBeHidden();
+  await page.mouse.up();
+});
+
 test('tool transition shows a real URL, redirects approved tools, and rejects unknown ids', async ({ page }) => {
   await page.route('https://olafifi.github.io/ui-image-processor/', async (route) => {
     await route.fulfill({ contentType: 'text/html', body: '<title>FiFi Image Tool</title><h1>tool ready</h1>' });
