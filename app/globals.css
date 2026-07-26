@@ -352,7 +352,7 @@ img { display: block; max-width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
-  .wake-layer, .cursor-core { display: none; }
-  .tool-card.is-tracking { transform: none; }
+  .tool-card { transition-duration: .18s; }
+  .tool-card.is-tracking { transform: perspective(760px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(0, -2px, 0); }
+  .wake-cat--reduced { width: 20px; height: 20px; animation-duration: .52s; }
 }

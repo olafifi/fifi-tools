@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import type { FrameLocator } from '@playwright/test';
+import type { FrameLocator, Page } from '@playwright/test';
 
 async function expectFrameWithoutScrollbars(frame: FrameLocator, label: string) {
   const metrics = await frame.locator('body').evaluate(() => {
@@ -15,6 +15,38 @@ async function expectFrameWithoutScrollbars(frame: FrameLocator, label: string) 
   });
   expect(metrics.horizontal, label).toBe(true);
   expect(metrics.vertical, `${label}: ${metrics.scrollHeight}px content in ${metrics.clientHeight}px viewport`).toBe(true);
+}
+
+async function canvasSignature(page: Page) {
+  return page.locator('canvas.interactive-field').evaluate((canvas) => {
+    const source = canvas as HTMLCanvasElement;
+    const context = source.getContext('2d');
+    if (!context) throw new Error('Interactive canvas has no 2D context.');
+    const pixels = context.getImageData(0, 0, source.width, source.height).data;
+    let hash = 2166136261;
+    for (let index = 0; index < pixels.length; index += 97) {
+      hash ^= pixels[index];
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  });
+}
+
+async function expectVisibleHomepageMotion(page: Page) {
+  await page.goto('./');
+  const before = await canvasSignature(page);
+  await page.mouse.move(280, 220);
+  await page.waitForTimeout(220);
+  const after = await canvasSignature(page);
+  expect(after).not.toBe(before);
+  expect(await page.locator('.wake-cat').count()).toBeGreaterThan(0);
+  await expect(page.locator('.cursor-core')).toHaveCSS('opacity', '1');
+
+  const card = page.locator('.tool-card').first();
+  const box = await card.boundingBox();
+  if (!box) throw new Error('Tool card is not visible.');
+  await page.mouse.move(box.x + box.width * 0.72, box.y + box.height * 0.34);
+  await expect(card).not.toHaveCSS('transform', 'none');
 }
 
 test('home stays usable without horizontal overflow at key widths', async ({ page }) => {
@@ -100,6 +132,41 @@ test('tool transition shows a real URL, redirects approved tools, and rejects un
   await page.goto('./open-tool.html?tool=not-allowed');
   await expect(page.getByRole('alert')).toContainText('这条实验通道不存在');
   await expect(page.getByRole('link', { name: '返回 FIFI Lab' })).toBeVisible();
+});
+
+test('normal motion profile keeps the homepage interactions visible', async ({ page }) => {
+  await expectVisibleHomepageMotion(page);
+});
+
+test.describe('reduced motion profile', () => {
+  test('keeps a restrained version of the homepage interactions visible', async ({ browser, baseURL }) => {
+    const context = await browser.newContext({ baseURL, reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    try {
+      expect(await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);
+      await expectVisibleHomepageMotion(page);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('keeps the reduced tool portal visible before redirecting', async ({ browser, baseURL }) => {
+    const context = await browser.newContext({ baseURL, reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    try {
+      await page.route('https://olafifi.github.io/ui-image-processor/', async (route) => {
+        await route.fulfill({ contentType: 'text/html', body: '<title>FiFi Image Tool</title><h1>tool ready</h1>' });
+      });
+
+      await page.goto('./open-tool.html?tool=image-processor');
+      await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
+      await page.waitForTimeout(300);
+      await expect(page).toHaveURL(/open-tool\.html\?tool=image-processor/);
+      await expect(page).toHaveURL('https://olafifi.github.io/ui-image-processor/', { timeout: 2000 });
+    } finally {
+      await context.close();
+    }
+  });
 });
 
 const games = [

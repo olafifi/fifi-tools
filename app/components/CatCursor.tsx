@@ -7,7 +7,10 @@ export function CatCursor() {
   const coreRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    if (navigator.userAgent.includes('jsdom') || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (navigator.userAgent.includes('jsdom')) return;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const minDelay = reducedMotion ? 140 : 60;
+    const minDistance = reducedMotion ? 18 : 9;
     let lastTime = 0;
     let lastX = 0;
     let lastY = 0;
@@ -22,9 +25,9 @@ export function CatCursor() {
       core.style.top = `${event.clientY}px`;
       core.style.opacity = '1';
       const now = performance.now();
-      if (now - lastTime < 60 || Math.hypot(event.clientX - lastX, event.clientY - lastY) < 9) return;
+      if (now - lastTime < minDelay || Math.hypot(event.clientX - lastX, event.clientY - lastY) < minDistance) return;
       const cat = document.createElement('i');
-      cat.className = 'wake-cat';
+      cat.className = `wake-cat${reducedMotion ? ' wake-cat--reduced' : ''}`;
       cat.style.left = `${event.clientX}px`;
       cat.style.top = `${event.clientY}px`;
       cat.style.color = colors[wake % colors.length];
