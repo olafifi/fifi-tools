@@ -187,3 +187,62 @@ git commit -m "feat: 让蛋白持续托住展开托盘"
 - [ ] **Step 10: Refresh the temporary review site**
 
 Inspect open, receive, clear-pull, and close at 1440×900 and 375×812. Rebuild and serve the production output at the existing temporary review URL, then wait for user approval before merge or publication.
+
+### Task 6: Clarify the empty state and clear-handle instruction
+
+**Files:**
+- Modify: `app/components/TicketConveyor.tsx`
+- Modify: `app/components/TemporaryTicketTray.tsx`
+- Modify: `app/globals.css`
+- Modify: `tests/e2e/home.spec.ts`
+
+**Interfaces:**
+- Produces: empty-state helper text `今天临时要记住的东西，可以先扔在这里`.
+- Produces: populated clear instruction `按住右侧拉柄，向下拉即可清空`.
+
+- [ ] **Step 1: Write the failing browser test**
+
+Open an empty tray and assert the new neutral helper text. Add one item, then assert the clear instruction changes to the approved copy, is right-aligned, ends within 16 px of the clear handle, and never overlaps it at 1440×900 and 375×812.
+
+```ts
+await expect(page.getByText('今天临时要记住的东西，可以先扔在这里', { exact: true })).toBeVisible();
+await expect(page.getByText('按住右侧拉柄，向下拉即可清空', { exact: true })).toHaveCSS('text-align', 'right');
+expect(handleBox.x - (promptBox.x + promptBox.width)).toBeGreaterThanOrEqual(0);
+expect(handleBox.x - (promptBox.x + promptBox.width)).toBeLessThanOrEqual(16);
+```
+
+- [ ] **Step 2: Run the focused test and verify RED**
+
+Run: `npx playwright test tests/e2e/home.spec.ts -g "clear handle instruction"`
+
+Expected: FAIL because the page still uses “接力” and the old clear instruction.
+
+- [ ] **Step 3: Apply the approved copy and alignment**
+
+Change the empty-state helper in `TicketConveyor.tsx` to the exact approved sentence. Change the populated-state `<p>` in `TemporaryTicketTray.tsx` to the exact approved clear instruction. In `app/globals.css`, keep the prompt in grid column 1 and add `align-self: end`, `padding-right: 2px`, `text-align: right`, and `line-height: 1.3`; retain the existing 10 px grid gap so the prompt remains close without covering the handle.
+
+- [ ] **Step 4: Run the focused test and verify GREEN**
+
+Run: `npx playwright test tests/e2e/home.spec.ts -g "clear handle instruction"`
+
+Expected: PASS at both target viewport sizes.
+
+- [ ] **Step 5: Run complete verification**
+
+```powershell
+npm test
+npm run test:games
+npm run e2e
+npm run build
+```
+
+Expected: all checks pass; the two leaderboard environment checks remain conditionally skipped.
+
+- [ ] **Step 6: Commit and refresh the temporary preview**
+
+```powershell
+git add app/components/TicketConveyor.tsx app/components/TemporaryTicketTray.tsx app/globals.css tests/e2e/home.spec.ts
+git commit -m "fix: 优化托盘提示文案与位置"
+```
+
+Inspect the production build at 1440×900 and 375×812, then update the existing temporary review URL without merging or publishing.
