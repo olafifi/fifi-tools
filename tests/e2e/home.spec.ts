@@ -156,6 +156,35 @@ test('desktop home uses the viewport and keeps the game station on the left', as
   }
 });
 
+test('clear handle instruction uses plain copy and sits next to the handle', async ({ browser, baseURL }) => {
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 375, height: 812 }
+  ]) {
+    const context = await browser.newContext({ baseURL, viewport });
+    const page = await context.newPage();
+    await page.goto('./');
+    await page.getByRole('button', { name: /TODAY/ }).click();
+
+    await expect(page.getByText('今天临时要记住的东西，可以先扔在这里', { exact: true })).toBeVisible();
+    await page.getByRole('textbox', { name: '临时内容' }).fill('清空提示位置测试');
+    await page.getByRole('button', { name: '送入' }).click();
+
+    const prompt = page.getByText('按住右侧拉柄，向下拉即可清空', { exact: true });
+    const handle = page.getByRole('button', { name: '长拉清空全部内容' });
+    await expect(prompt).toBeVisible();
+    await expect(prompt).toHaveCSS('text-align', 'right');
+
+    const promptBox = await prompt.boundingBox();
+    const handleBox = await handle.boundingBox();
+    if (!promptBox || !handleBox) throw new Error('Clear instruction layout is missing.');
+    const gap = handleBox.x - (promptBox.x + promptBox.width);
+    expect(gap).toBeGreaterThanOrEqual(0);
+    expect(gap).toBeLessThanOrEqual(16);
+    await context.close();
+  }
+});
+
 test('temporary tray persists text and image tickets, then discards them', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: /TODAY/ }).click();

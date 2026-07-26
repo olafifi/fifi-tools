@@ -168,7 +168,7 @@ export function TemporaryTicketTray() {
         </div>
 
         <div className="tray-clear-zone">
-          <p>{tray.tickets.length ? '向下拉到底，清空今天的全部内容' : '托盘已经清空'}</p>
+          <p>{tray.tickets.length ? '按住右侧拉柄，向下拉即可清空' : '托盘已经清空'}</p>
           <div className="tray-clear-track"><i /></div>
           <button
             type="button"

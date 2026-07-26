@@ -15,7 +15,7 @@ export function TicketConveyor({ tickets, ghosts, onDiscard }: TicketConveyorPro
       {tickets.length === 0 && ghosts.length === 0 ? (
         <div className="ticket-empty">
           <b>托盘现在是空的</b>
-          <span>今天临时要接力的东西，都可以先扔到这里。</span>
+          <span>今天临时要记住的东西，可以先扔在这里</span>
         </div>
       ) : (
         <div className="ticket-stack">
