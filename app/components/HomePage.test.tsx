@@ -64,7 +64,13 @@ describe('HomePage', () => {
       'true'
     );
 
-    await userEvent.click(screen.getAllByRole('button', { name: '标记为已完成' })[0]);
+    const firstCheck = screen.getAllByRole('button', { name: '标记为已完成' })[0];
+    const firstInput = screen.getAllByRole('textbox', { name: '待办内容' })[0];
+    expect(firstCheck.querySelector('.task-check__mark')).toBeInTheDocument();
+    expect(firstInput.parentElement).toHaveClass('task-input-shell');
+    expect(firstInput.parentElement?.querySelector('.task-strike')).toBeInTheDocument();
+
+    await userEvent.click(firstCheck);
     expect(screen.getByText('我有 3 条待办 · 1 条完成')).toBeInTheDocument();
 
     const add = screen.getByRole('button', { name: '新增任务' });

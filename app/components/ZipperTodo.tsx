@@ -199,14 +199,21 @@ export function ZipperTodo() {
               onClick={() => setTodos((current) => current.map((todo) => todo.id === item.id ? { ...todo, done: !todo.done } : todo))}
               type="button"
               tabIndex={interactive ? 0 : -1}
-            >{item.done ? '✓' : ''}</button>
-            <input
-              aria-label="待办内容"
-              maxLength={50}
-              onChange={(event) => setTodos((current) => current.map((todo) => todo.id === item.id ? { ...todo, text: event.target.value.slice(0, 50) } : todo))}
-              value={item.text}
-              tabIndex={interactive ? 0 : -1}
-            />
+            >
+              <svg aria-hidden="true" viewBox="0 0 18 18">
+                <path className="task-check__mark" d="M4 9.5 7.4 13 14 5.5" pathLength="1" />
+              </svg>
+            </button>
+            <span className="task-input-shell">
+              <input
+                aria-label="待办内容"
+                maxLength={50}
+                onChange={(event) => setTodos((current) => current.map((todo) => todo.id === item.id ? { ...todo, text: event.target.value.slice(0, 50) } : todo))}
+                value={item.text}
+                tabIndex={interactive ? 0 : -1}
+              />
+              <span aria-hidden="true" className="task-strike" />
+            </span>
             <button
               aria-label="删除任务"
               className="task-delete"

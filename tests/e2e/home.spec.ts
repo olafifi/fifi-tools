@@ -151,6 +151,31 @@ test('zipper click closes after a complete open and the add button waits for int
   await page.mouse.up();
 });
 
+test('todo completion draws a check and strike before returning cleanly', async ({ page }) => {
+  await page.goto('./');
+  await page.locator('.zip-pull').click();
+  await expect(page.locator('.todo-root')).toHaveClass(/interactive/);
+
+  const firstRow = page.locator('.task-row').first();
+  const check = firstRow.getByRole('button', { name: '标记为已完成' });
+  const mark = firstRow.locator('.task-check__mark');
+  const strike = firstRow.locator('.task-strike');
+  await expect(mark).toHaveCSS('stroke-dashoffset', '1px');
+  await expect(strike).toHaveCSS('transform', /matrix\(0, 0, 0, 1,/);
+
+  await check.click();
+  await expect(page.locator('.count-curve')).toHaveText('我有 3 条待办 · 1 条完成');
+  await expect(firstRow).toHaveClass(/done/);
+  await expect(mark).toHaveCSS('stroke-dashoffset', '0px');
+  await expect(strike).toHaveCSS('transform', /matrix\(1, 0, 0, 1,/);
+
+  await firstRow.getByRole('button', { name: '标记为未完成' }).click();
+  await expect(page.locator('.count-curve')).toHaveText('我有 3 条待办 · 0 条完成');
+  await expect(firstRow).not.toHaveClass(/done/);
+  await expect(mark).toHaveCSS('stroke-dashoffset', '1px');
+  await expect(strike).toHaveCSS('transform', /matrix\(0, 0, 0, 1,/);
+});
+
 test('tool transition shows a real URL, redirects approved tools, and rejects unknown ids', async ({ page }) => {
   await page.route('https://olafifi.github.io/ui-image-processor/', async (route) => {
     await route.fulfill({ contentType: 'text/html', body: '<title>FiFi Image Tool</title><h1>tool ready</h1>' });
