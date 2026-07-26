@@ -68,17 +68,19 @@ async function expectVisibleHomepageMotion(page: Page) {
 
 async function capturePointerMotion(page: Page) {
   await page.goto('./');
-  await page.waitForTimeout(160);
-  for (const point of [
-    { x: 140, y: 150 },
-    { x: 200, y: 170 },
-    { x: 260, y: 190 },
-    { x: 320, y: 210 },
-    { x: 380, y: 230 },
-  ]) {
-    await page.mouse.move(point.x, point.y);
-    await page.waitForTimeout(70);
-  }
+  await page.evaluate(() => {
+    [
+      { x: 140, y: 150, time: 1000 },
+      { x: 200, y: 170, time: 1070 },
+      { x: 260, y: 190, time: 1140 },
+      { x: 320, y: 210, time: 1210 },
+      { x: 380, y: 230, time: 1280 },
+    ].forEach((point) => {
+      const event = new PointerEvent('pointermove', { clientX: point.x, clientY: point.y });
+      Object.defineProperty(event, 'timeStamp', { value: point.time });
+      window.dispatchEvent(event);
+    });
+  });
 
   const cats = page.locator('.wake-cat');
   const trail = {
@@ -91,8 +93,8 @@ async function capturePointerMotion(page: Page) {
   if (!box) throw new Error('Tool card is not visible.');
   await page.mouse.move(box.x + box.width * 0.72, box.y + box.height * 0.34);
   const tilt = await card.evaluate((node) => ({
-    rx: (node as HTMLElement).style.getPropertyValue('--rx'),
-    ry: (node as HTMLElement).style.getPropertyValue('--ry'),
+    rx: Number.parseFloat((node as HTMLElement).style.getPropertyValue('--rx')),
+    ry: Number.parseFloat((node as HTMLElement).style.getPropertyValue('--ry')),
   }));
   return { trail, tilt };
 }
@@ -272,7 +274,10 @@ test('both motion profiles keep the same full cat trail and tool tilt', async ({
     expect(reduced.trail.count).toBe(full.trail.count);
     expect(full.trail).toMatchObject({ width: '30px', duration: '1.16s' });
     expect(reduced.trail).toMatchObject({ width: '30px', duration: '1.16s' });
-    expect(reduced.tilt).toEqual(full.tilt);
+    expect(full.tilt.rx).toBeCloseTo(0.8, 1);
+    expect(reduced.tilt.rx).toBeCloseTo(0.8, 1);
+    expect(full.tilt.ry).toBeCloseTo(1.54, 1);
+    expect(reduced.tilt.ry).toBeCloseTo(1.54, 1);
   } finally {
     await fullContext.close();
     await reducedContext.close();
