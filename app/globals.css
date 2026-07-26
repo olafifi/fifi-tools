@@ -355,9 +355,3 @@ img { display: block; max-width: 100%; }
   .todo-root { left: -18px; bottom: 16px; transform: scale(.58); }
   .game-window { width: calc(100vw - 14px); height: calc(100dvh - 14px); border-radius: 10px; box-shadow: none; }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .tool-card { transition-duration: .18s; }
-  .tool-card.is-tracking { transform: perspective(760px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(0, -2px, 0); }
-  .wake-cat--reduced { width: 20px; height: 20px; animation-duration: .52s; }
-}

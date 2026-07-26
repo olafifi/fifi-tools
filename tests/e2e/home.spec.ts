@@ -66,6 +66,37 @@ async function expectVisibleHomepageMotion(page: Page) {
   await expect(card).not.toHaveCSS('transform', 'none');
 }
 
+async function capturePointerMotion(page: Page) {
+  await page.goto('./');
+  await page.waitForTimeout(160);
+  for (const point of [
+    { x: 140, y: 150 },
+    { x: 200, y: 170 },
+    { x: 260, y: 190 },
+    { x: 320, y: 210 },
+    { x: 380, y: 230 },
+  ]) {
+    await page.mouse.move(point.x, point.y);
+    await page.waitForTimeout(70);
+  }
+
+  const cats = page.locator('.wake-cat');
+  const trail = {
+    count: await cats.count(),
+    width: await cats.first().evaluate((node) => getComputedStyle(node).width),
+    duration: await cats.first().evaluate((node) => getComputedStyle(node).animationDuration),
+  };
+  const card = page.locator('.tool-card').first();
+  const box = await card.boundingBox();
+  if (!box) throw new Error('Tool card is not visible.');
+  await page.mouse.move(box.x + box.width * 0.72, box.y + box.height * 0.34);
+  const tilt = await card.evaluate((node) => ({
+    rx: (node as HTMLElement).style.getPropertyValue('--rx'),
+    ry: (node as HTMLElement).style.getPropertyValue('--ry'),
+  }));
+  return { trail, tilt };
+}
+
 test('home stays usable without horizontal overflow at key widths', async ({ page }) => {
   for (const viewport of [
     { width: 375, height: 812 },
@@ -223,6 +254,25 @@ test('both motion profiles keep the full foreground background cadence', async (
     expect(fullFrames).toBeGreaterThanOrEqual(6);
     expect(reducedFrames).toBeGreaterThanOrEqual(6);
     expect(Math.abs(fullFrames - reducedFrames)).toBeLessThanOrEqual(3);
+  } finally {
+    await fullContext.close();
+    await reducedContext.close();
+  }
+});
+
+test('both motion profiles keep the same full cat trail and tool tilt', async ({ browser, baseURL }) => {
+  const fullContext = await browser.newContext({ baseURL, reducedMotion: 'no-preference' });
+  const reducedContext = await browser.newContext({ baseURL, reducedMotion: 'reduce' });
+  const fullPage = await fullContext.newPage();
+  const reducedPage = await reducedContext.newPage();
+  try {
+    const full = await capturePointerMotion(fullPage);
+    const reduced = await capturePointerMotion(reducedPage);
+    expect(full.trail.count).toBeGreaterThanOrEqual(4);
+    expect(reduced.trail.count).toBe(full.trail.count);
+    expect(full.trail).toMatchObject({ width: '30px', duration: '1.16s' });
+    expect(reduced.trail).toMatchObject({ width: '30px', duration: '1.16s' });
+    expect(reduced.tilt).toEqual(full.tilt);
   } finally {
     await fullContext.close();
     await reducedContext.close();

@@ -7,10 +7,9 @@ export function ToolGrid() {
     const rect = card.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width - 0.5;
     const y = (event.clientY - rect.top) / rect.height - 0.5;
-    const motionScale = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.3 : 1;
     card.classList.add('is-tracking');
-    card.style.setProperty('--rx', `${(-y * 5 * motionScale).toFixed(2)}deg`);
-    card.style.setProperty('--ry', `${(x * 7 * motionScale).toFixed(2)}deg`);
+    card.style.setProperty('--rx', `${(-y * 5).toFixed(2)}deg`);
+    card.style.setProperty('--ry', `${(x * 7).toFixed(2)}deg`);
     card.style.setProperty('--scan-x', `${Math.round((x + 0.5) * (rect.width + 150))}px`);
   };
 
