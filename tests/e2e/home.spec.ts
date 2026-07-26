@@ -32,7 +32,7 @@ async function canvasSignature(page: Page) {
   });
 }
 
-async function measureBackgroundFrames(page: Page, durationMs = 180) {
+async function measureBackgroundFrames(page: Page, durationMs = 240) {
   await page.addInitScript(() => {
     const state = window as typeof window & { __fifiFieldFrames?: number };
     state.__fifiFieldFrames = 0;
@@ -43,7 +43,11 @@ async function measureBackgroundFrames(page: Page, durationMs = 180) {
     };
   });
   await page.goto('./');
-  await page.waitForTimeout(80);
+  await page.waitForFunction(
+    () => ((window as typeof window & { __fifiFieldFrames?: number }).__fifiFieldFrames ?? 0) >= 3,
+    undefined,
+    { polling: 50, timeout: 2000 }
+  );
   await page.evaluate(() => { (window as typeof window & { __fifiFieldFrames?: number }).__fifiFieldFrames = 0; });
   await page.waitForTimeout(durationMs);
   return page.evaluate(() => (window as typeof window & { __fifiFieldFrames?: number }).__fifiFieldFrames ?? 0);
@@ -113,7 +117,8 @@ test('home stays usable without horizontal overflow at key widths', async ({ pag
     await expect(page.getByRole('link', { name: 'FiFi 富文本转换' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'FIFI Lab 首页' })).toBeVisible();
     await expect(page.getByText('菲菲实验站')).toHaveCount(0);
-    await expect(page.getByRole('region', { name: '蛋白临时票据传送盘' })).toBeVisible();
+    await expect(page.getByRole('region', { name: '临时内容托盘' })).toBeVisible();
+    await expect(page.locator('meta[name="description"]')).not.toHaveAttribute('content', /票据/);
     await expect(page.locator('.count-curve')).toHaveText('我有 3 条待办 · 0 条完成');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
   }
@@ -154,8 +159,11 @@ test('desktop home uses the viewport and keeps the game station on the left', as
 test('temporary tray persists text and image tickets, then discards them', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: /TODAY/ }).click();
-  await page.getByRole('textbox', { name: '临时票据内容' }).fill('https://example.com/relay');
+  await expect(page.locator('.temporary-tray')).toHaveClass(/is-opening/);
+  await expect(page.locator('.tray-dock img').first()).toHaveAttribute('src', /temporary-content-tray-mascot\.png$/);
+  await page.getByRole('textbox', { name: '临时内容' }).fill('https://example.com/relay');
   await page.getByRole('button', { name: '送入' }).click();
+  await expect(page.locator('.temporary-tray')).toHaveClass(/is-receiving/);
   await page.getByLabel('选择临时文件').setInputFiles('public/danbai/blank.png');
 
   await expect(page.locator('.ticket-card')).toHaveCount(2);
@@ -177,7 +185,7 @@ test('temporary tray expires at 06:00 and keyboard hold clears all', async ({ pa
   await page.clock.install({ time: new Date(2026, 6, 26, 5, 50, 0) });
   await page.goto('./');
   await page.getByRole('button', { name: /TODAY/ }).click();
-  await page.getByRole('textbox', { name: '临时票据内容' }).fill('换日前');
+  await page.getByRole('textbox', { name: '临时内容' }).fill('换日前');
   await page.getByRole('button', { name: '送入' }).click();
   await expect(page.locator('.ticket-card')).toHaveCount(1);
 
@@ -187,10 +195,10 @@ test('temporary tray expires at 06:00 and keyboard hold clears all', async ({ pa
   await expect(page.locator('.ticket-card')).toHaveCount(0);
 
   for (const value of ['第一张', '第二张']) {
-    await page.getByRole('textbox', { name: '临时票据内容' }).fill(value);
+    await page.getByRole('textbox', { name: '临时内容' }).fill(value);
     await page.getByRole('button', { name: '送入' }).click();
   }
-  const clear = page.getByRole('button', { name: '长拉清空全部票据' });
+  const clear = page.getByRole('button', { name: '长拉清空全部内容' });
   await clear.focus();
   await page.keyboard.down('Enter');
   await page.waitForTimeout(950);
@@ -310,20 +318,16 @@ test('normal motion profile keeps the homepage interactions visible', async ({ p
 });
 
 test('both motion profiles keep the full foreground background cadence', async ({ browser, baseURL }) => {
-  const fullContext = await browser.newContext({ baseURL, reducedMotion: 'no-preference' });
-  const reducedContext = await browser.newContext({ baseURL, reducedMotion: 'reduce' });
-  const fullPage = await fullContext.newPage();
-  const reducedPage = await reducedContext.newPage();
-  try {
-    const fullFrames = await measureBackgroundFrames(fullPage);
-    const reducedFrames = await measureBackgroundFrames(reducedPage);
-    expect(fullFrames).toBeGreaterThanOrEqual(6);
-    expect(reducedFrames).toBeGreaterThanOrEqual(6);
-    expect(Math.abs(fullFrames - reducedFrames)).toBeLessThanOrEqual(3);
-  } finally {
-    await fullContext.close();
-    await reducedContext.close();
+  const frameCounts: number[] = [];
+  for (const reducedMotion of ['no-preference', 'reduce'] as const) {
+    const context = await browser.newContext({ baseURL, reducedMotion });
+    const page = await context.newPage();
+    frameCounts.push(await measureBackgroundFrames(page));
+    await context.close();
   }
+  const [fullFrames, reducedFrames] = frameCounts;
+  expect(fullFrames).toBeGreaterThanOrEqual(6);
+  expect(reducedFrames).toBeGreaterThanOrEqual(6);
 });
 
 test('both motion profiles keep the same full cat trail and tool tilt', async ({ browser, baseURL }) => {

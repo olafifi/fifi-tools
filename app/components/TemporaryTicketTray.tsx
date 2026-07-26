@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import { useTemporaryTickets } from '../hooks/useTemporaryTickets';
+import { contentTrayMotion } from '../lib/contentTrayMotion';
 import type { TicketRecord } from '../lib/tickets';
 import { TicketConveyor } from './TicketConveyor';
 import { TicketIntake } from './TicketIntake';
@@ -10,6 +11,8 @@ const KEY_HOLD_MS = 900;
 export function TemporaryTicketTray() {
   const tray = useTemporaryTickets();
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [receiving, setReceiving] = useState(false);
   const [pullProgress, setPullProgress] = useState(0);
   const [ghosts, setGhosts] = useState<Array<TicketRecord & { clearing?: boolean }>>([]);
   const pointerStart = useRef<number | null>(null);
@@ -17,6 +20,20 @@ export function TemporaryTicketTray() {
   const keyboardFrame = useRef<number>(0);
   const keyboardStarted = useRef(0);
   const clearStarted = useRef(false);
+  const previousCount = useRef(0);
+  const receiveTimer = useRef<number>(0);
+  const closeTimer = useRef<number>(0);
+
+  const mascotAsset = `${import.meta.env.BASE_URL}danbai/temporary-content-tray-mascot.png`;
+
+  useEffect(() => {
+    const motion = contentTrayMotion(previousCount.current, tray.tickets.length, open);
+    previousCount.current = tray.tickets.length;
+    if (motion !== 'receiving') return;
+    window.clearTimeout(receiveTimer.current);
+    setReceiving(true);
+    receiveTimer.current = window.setTimeout(() => setReceiving(false), 720);
+  }, [open, tray.tickets.length]);
 
   const finishGhosts = () => window.setTimeout(() => setGhosts([]), 720);
 
@@ -74,20 +91,46 @@ export function TemporaryTicketTray() {
     keyboardTimer.current = window.setTimeout(() => void clearAll(), KEY_HOLD_MS);
   };
 
-  useEffect(() => () => stopKeyboardPull(), []);
+  useEffect(() => () => {
+    stopKeyboardPull();
+    window.clearTimeout(receiveTimer.current);
+    window.clearTimeout(closeTimer.current);
+  }, []);
+
+  const openTray = () => {
+    window.clearTimeout(closeTimer.current);
+    setClosing(false);
+    setOpen(true);
+  };
+
+  const closeTray = () => {
+    setClosing(true);
+    setOpen(false);
+    window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => setClosing(false), 760);
+  };
 
   const style = { '--pull-progress': pullProgress } as CSSProperties;
 
   return (
-    <section className={`temporary-tray${open ? ' is-open' : ''}`} style={style} aria-label="临时内容托盘">
+    <section
+      className={`temporary-tray${open ? ' is-open is-opening' : ''}${closing ? ' is-closing' : ''}${receiving ? ' is-receiving' : ''}`}
+      style={style}
+      aria-label="临时内容托盘"
+    >
       <button
         type="button"
         className="tray-dock"
         aria-expanded={open}
         aria-controls="temporary-ticket-tray-panel"
-        onClick={() => setOpen(true)}
+        onClick={openTray}
       >
-        <img src={`${import.meta.env.BASE_URL}danbai/expect.png`} alt="" />
+        <span className="tray-dock__mascot" aria-hidden="true">
+          <img className="tray-dock__body" src={mascotAsset} alt="" />
+          <img className="tray-dock__lifted-tray" src={mascotAsset} alt="" />
+        </span>
+        <span className="tray-dock__slip" aria-hidden="true" />
+        <span className="tray-dock__spark" aria-hidden="true">✦</span>
         <span className="tray-dock__plate">
           <small>TODAY</small>
           <b>{String(tray.tickets.length).padStart(2, '0')}</b>
@@ -101,7 +144,7 @@ export function TemporaryTicketTray() {
             <span>临时内容托盘</span>
             <small>LOCAL · TODAY / {String(tray.tickets.length).padStart(2, '0')}</small>
           </div>
-          <button type="button" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)} aria-label="收起临时内容托盘">×</button>
+          <button type="button" tabIndex={open ? 0 : -1} onClick={closeTray} aria-label="收起临时内容托盘">×</button>
         </div>
 
         <div className="tray-machine__body">

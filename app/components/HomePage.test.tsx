@@ -20,11 +20,15 @@ describe('HomePage', () => {
   });
 
   it('shows the collapsed temporary content tray without ticket wording', () => {
-    render(<HomePage />);
+    const { container } = render(<HomePage />);
 
     expect(screen.getByRole('region', { name: '临时内容托盘' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /TODAY/ })).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByText(/票据/)).not.toBeInTheDocument();
+    expect(container.querySelector('.tray-dock img')).toHaveAttribute(
+      'src',
+      '/danbai/temporary-content-tray-mascot.png'
+    );
   });
 
   it('shows both production tools and five games', () => {

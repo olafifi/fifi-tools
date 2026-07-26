@@ -14,7 +14,7 @@ export function TicketConveyor({ tickets, ghosts, onDiscard }: TicketConveyorPro
       <div className="ticket-conveyor__rail" aria-hidden="true" />
       {tickets.length === 0 && ghosts.length === 0 ? (
         <div className="ticket-empty">
-          <b>传送带现在是空的</b>
+          <b>托盘现在是空的</b>
           <span>今天临时要接力的东西，都可以先扔到这里。</span>
         </div>
       ) : (
