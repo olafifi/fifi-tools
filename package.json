@@ -27,6 +27,7 @@
     "@types/node": "^26.1.1",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "fake-indexeddb": "^6.2.5",
     "jsdom": "latest",
     "typescript": "latest",
     "vitest": "latest"
