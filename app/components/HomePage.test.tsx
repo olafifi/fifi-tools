@@ -10,12 +10,20 @@ describe('HomePage', () => {
     window.localStorage.clear();
   });
 
-  it('uses the approved FIFI Lab site brand and slogan', () => {
+  it('keeps only the compact English brand and removes the central hero', () => {
     render(<HomePage />);
 
-    expect(screen.getByRole('heading', { name: /FIFI Lab/ })).toBeInTheDocument();
-    expect(screen.getByText('菲菲实验站')).toBeInTheDocument();
-    expect(screen.getByText('一些能让生活省点力气的小实验。')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'FIFI Lab 首页' })).toHaveTextContent('FIFI Lab');
+    expect(screen.queryByText('菲菲实验站')).not.toBeInTheDocument();
+    expect(screen.queryByText('一些能让生活省点力气的小实验。')).not.toBeInTheDocument();
+    expect(screen.queryByText('SMALL EXPERIMENTS', { exact: false })).not.toBeInTheDocument();
+  });
+
+  it('shows the collapsed temporary ticket tray', () => {
+    render(<HomePage />);
+
+    expect(screen.getByRole('region', { name: '蛋白临时票据传送盘' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /TODAY/ })).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('shows both production tools and five games', () => {

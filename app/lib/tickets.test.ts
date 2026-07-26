@@ -16,7 +16,7 @@ const textDraft = (payload = 'hello'): TicketDraft => ({
   type: 'text', name: '临时文字', mimeType: 'text/plain', size: new TextEncoder().encode(payload).byteLength, payload
 });
 
-const record = (draft: TicketDraft, id = crypto.randomUUID()): TicketRecord => ({
+const record = (draft: TicketDraft, id: string = crypto.randomUUID()): TicketRecord => ({
   ...draft, id, createdAt: Date.now(), workdayKey: '2026-07-26'
 });
 

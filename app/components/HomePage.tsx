@@ -4,9 +4,9 @@ import { BrandNav } from './BrandNav';
 import { CatCursor } from './CatCursor';
 import { GameStation } from './GameStation';
 import { GameWindow } from './GameWindow';
-import { Hero } from './Hero';
 import { InteractiveField } from './InteractiveField';
 import { LabClock } from './LabClock';
+import { TemporaryTicketTray } from './TemporaryTicketTray';
 import { ToolGrid } from './ToolGrid';
 import { ZipperTodo } from './ZipperTodo';
 
@@ -25,7 +25,7 @@ export function HomePage() {
   };
 
   return (
-    <div className="site-shell">
+    <div className="site-shell" id="top">
       <InteractiveField />
       <div className="fifi-noise" aria-hidden="true" />
       <div className="fifi-frame" aria-hidden="true" />
@@ -34,8 +34,8 @@ export function HomePage() {
       <main className="fifi-workspace">
         <GameStation onOpenGame={openGame} />
         <ToolGrid />
-        <Hero />
       </main>
+      <TemporaryTicketTray />
       <ZipperTodo />
       <CatCursor />
       <GameWindow game={selectedGame} onClose={closeGame} />
