@@ -83,3 +83,107 @@
 - [ ] Verify the production-build preview returns HTTP 200 at the temporary URL.
 - [ ] Provide the temporary URL and wait for user approval before merging or publishing.
 
+### Task 5: Keep Danbai visibly carrying the expanded tray
+
+**Files:**
+- Modify: `app/components/TemporaryTicketTray.tsx`
+- Modify: `app/components/HomePage.test.tsx`
+- Modify: `app/globals.css`
+- Modify: `tests/e2e/home.spec.ts`
+
+**Interfaces:**
+- Consumes: `mascotAsset`, `open`, `closing`, `receiving`, and `pullProgress` from `TemporaryTicketTray`.
+- Produces: `.tray-machine__carrier` as the expanded-state Danbai layer and `.is-pulling-clear` as the clear-pull motion state.
+
+- [ ] **Step 1: Write the failing component test**
+
+Add an assertion after opening the tray that the carrying layer exists, reuses the approved mascot asset, and is hidden from assistive technology:
+
+```tsx
+await userEvent.click(screen.getByRole('button', { name: /TODAY/ }));
+const carrier = container.querySelector('.tray-machine__carrier');
+expect(carrier).toHaveAttribute('aria-hidden', 'true');
+expect(carrier?.querySelector('img')).toHaveAttribute(
+  'src',
+  '/danbai/temporary-content-tray-mascot.png'
+);
+```
+
+- [ ] **Step 2: Run the focused test and verify RED**
+
+Run: `npm test -- app/components/HomePage.test.tsx`
+
+Expected: FAIL because `.tray-machine__carrier` does not exist.
+
+- [ ] **Step 3: Add the carrier markup and clear-pull state**
+
+Render the carrier next to the existing machine so it can sit behind the machine while its paws meet the bottom edge:
+
+```tsx
+<span className="tray-machine__carrier" aria-hidden="true">
+  <img src={mascotAsset} alt="" />
+</span>
+```
+
+Extend the root class string with `${pullProgress > 0 ? ' is-pulling-clear' : ''}`. Do not introduce new data state or duplicate the mascot bitmap.
+
+- [ ] **Step 4: Run the focused test and verify GREEN**
+
+Run: `npm test -- app/components/HomePage.test.tsx`
+
+Expected: PASS with the existing homepage tests unchanged.
+
+- [ ] **Step 5: Write the failing browser layout and motion test**
+
+Open the tray at 1440×900 and 375×812, then assert the carrier is visible below the machine, horizontally overlaps it, and leaves the clear button operable. Add content and assert the carrier receives a non-`none` animation; start a clear pull and assert the root gains `.is-pulling-clear`.
+
+```ts
+expect(carrierBox.y).toBeGreaterThan(machineBox.y + machineBox.height - 80);
+expect(carrierBox.x).toBeLessThan(machineBox.x + machineBox.width);
+expect(carrierBox.x + carrierBox.width).toBeGreaterThan(machineBox.x);
+await expect(page.getByRole('button', { name: '长拉清空全部内容' })).toBeVisible();
+await expect(page.locator('.tray-machine__carrier img')).not.toHaveCSS('animation-name', 'none');
+```
+
+- [ ] **Step 6: Run the focused browser test and verify RED**
+
+Run: `npx playwright test tests/e2e/home.spec.ts -g "expanded tray carrier"`
+
+Expected: FAIL because the carrier has no expanded layout or state-linked animation.
+
+- [ ] **Step 7: Implement the expanded carrying composition and animation**
+
+In `app/globals.css`:
+
+- Raise `.tray-machine` above the carrier, reserve 86 px below it on desktop, and reduce its viewport-relative height by 86 px.
+- Position `.tray-machine__carrier` behind the machine, crop the generated tray portion with `clip-path`, and align the visible paws to the machine bottom edge.
+- Add `tray-carrier-arrive`, `tray-carrier-breathe`, `tray-carrier-receive`, `tray-carrier-pull`, and `tray-carrier-push-close` keyframes.
+- Keep the carrier visible for `.is-open` and `.is-closing`; prevent simultaneous visible dock/carrier mascots during the handoff.
+- At widths up to 760 px, shrink and recenter the carrier, reserve 68 px below the machine, and limit the machine height to `calc(100dvh - 82px)`.
+- Do not add a `prefers-reduced-motion` downgrade.
+
+- [ ] **Step 8: Run focused and complete verification**
+
+Run:
+
+```powershell
+npm test -- app/components/HomePage.test.tsx
+npx playwright test tests/e2e/home.spec.ts -g "temporary tray|expanded tray carrier"
+npm test
+npm run test:games
+npm run e2e
+npm run build
+```
+
+Expected: all checks pass; the only skipped tests are the existing environment-gated leaderboard checks.
+
+- [ ] **Step 9: Commit the expanded carrier**
+
+```powershell
+git add app/components/TemporaryTicketTray.tsx app/components/HomePage.test.tsx app/globals.css tests/e2e/home.spec.ts
+git commit -m "feat: 让蛋白持续托住展开托盘"
+```
+
+- [ ] **Step 10: Refresh the temporary review site**
+
+Inspect open, receive, clear-pull, and close at 1440×900 and 375×812. Rebuild and serve the production output at the existing temporary review URL, then wait for user approval before merge or publication.
