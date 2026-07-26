@@ -128,7 +128,13 @@ test('zipper click closes after a complete open and the add button waits for int
   await pull.click();
   await expect(root).toHaveClass(/interactive/);
   await expect(add).toBeVisible();
+  await expect(add).toHaveCSS('transform', 'none');
   expect(await add.evaluate((node) => node.parentElement?.classList.contains('todo-tasks'))).toBe(true);
+  await expect(page.locator('#todo-content-clip path')).toHaveAttribute('d', /L705\.00 530\.00/);
+  const rootBox = await root.boundingBox();
+  const addBox = await add.boundingBox();
+  if (!rootBox || !addBox) throw new Error('Open zipper geometry is not visible.');
+  expect(addBox.y + addBox.height).toBeLessThanOrEqual(rootBox.y + 531);
 
   await pull.click();
   await expect(root).not.toHaveClass(/open/);
