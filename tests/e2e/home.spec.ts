@@ -203,15 +203,41 @@ test('expanded tray carrier supports the machine and reacts to its load', async 
     expect(carrierBox.x).toBeLessThan(machineBox.x + machineBox.width);
     expect(carrierBox.x + carrierBox.width).toBeGreaterThan(machineBox.x);
     await expect(page.getByRole('button', { name: '长拉清空全部内容' })).toBeVisible();
+    if (viewport.width === 375) {
+      await page.getByRole('textbox', { name: '临时内容' }).fill('移动端内容可操作');
+      await page.getByRole('button', { name: '送入' }).click();
+      await expect(page.getByText('移动端内容可操作', { exact: true })).toBeVisible();
+    }
   }
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('./');
   await page.getByRole('button', { name: /TODAY/ }).click();
   await page.getByRole('textbox', { name: '临时内容' }).fill('承重测试');
+  await page.clock.install();
   await page.getByRole('button', { name: '送入' }).click();
+  await page.clock.runFor(16);
   await expect(page.locator('.temporary-tray')).toHaveClass(/is-receiving/);
-  await expect(page.locator('.tray-machine__carrier img')).toHaveCSS('animation-name', 'tray-carrier-receive');
+  const carrierImage = page.locator('.tray-machine__carrier img');
+  await expect(carrierImage).toHaveCSS('animation-name', 'tray-carrier-receive');
+  await carrierImage.evaluate((image) => {
+    const receiveAnimation = image.getAnimations().find((animation) => (
+      animation instanceof CSSAnimation && animation.animationName === 'tray-carrier-receive'
+    ));
+    (window as typeof window & { __fifiReceiveAnimation?: Animation }).__fifiReceiveAnimation = receiveAnimation;
+  });
+
+  await page.getByRole('textbox', { name: '临时内容' }).fill('连续承重测试');
+  await page.getByRole('button', { name: '送入' }).click();
+  await page.clock.runFor(16);
+  await expect.poll(() => carrierImage.evaluate((image) => {
+    const currentAnimation = image.getAnimations().find((animation) => (
+      animation instanceof CSSAnimation && animation.animationName === 'tray-carrier-receive'
+    ));
+    return Boolean(currentAnimation) && currentAnimation !== (
+      window as typeof window & { __fifiReceiveAnimation?: Animation }
+    ).__fifiReceiveAnimation;
+  }), { timeout: 500 }).toBe(true);
 
   const clear = page.getByRole('button', { name: '长拉清空全部内容' });
   const clearBox = await clear.boundingBox();
@@ -221,6 +247,37 @@ test('expanded tray carrier supports the machine and reacts to its load', async 
   await page.mouse.move(clearBox.x + clearBox.width / 2, clearBox.y + clearBox.height / 2 + 32);
   await expect(page.locator('.temporary-tray')).toHaveClass(/is-pulling-clear/);
   await page.mouse.up();
+});
+
+test('closing during receive releases the machine transform and returns focus', async ({ page }) => {
+  await page.goto('./');
+  const dock = page.getByRole('button', { name: /TODAY/ });
+  await dock.click();
+  await page.getByRole('textbox', { name: '临时内容' }).fill('接收后立刻关闭');
+  await page.clock.install();
+  await page.getByRole('button', { name: '送入' }).click();
+  await expect(page.locator('.temporary-tray')).toHaveClass(/is-receiving/);
+
+  await page.getByRole('button', { name: '收起临时内容托盘' }).evaluate((button) => {
+    (button as HTMLButtonElement).click();
+  });
+  await page.clock.runFor(16);
+  const closingState = await page.evaluate(() => {
+    const root = document.querySelector('.temporary-tray')!;
+    const machine = document.querySelector('.tray-machine')!;
+    const carrier = document.querySelector('.tray-machine__carrier img')!;
+    return {
+      rootClass: root.className,
+      machineAnimation: getComputedStyle(machine).animationName,
+      carrierAnimation: getComputedStyle(carrier).animationName,
+      dockFocused: document.activeElement?.classList.contains('tray-dock')
+    };
+  });
+
+  expect(closingState.rootClass).toContain('is-closing');
+  expect(closingState.machineAnimation).toBe('none');
+  expect(closingState.carrierAnimation).toBe('tray-carrier-push-close');
+  expect(closingState.dockFocused).toBe(true);
 });
 
 test('temporary tray expires at 06:00 and keyboard hold clears all', async ({ page }) => {
@@ -251,17 +308,23 @@ test('temporary tray expires at 06:00 and keyboard hold clears all', async ({ pa
 });
 
 test('temporary tray keeps the same full transition in both motion profiles', async ({ browser, baseURL }) => {
-  const durations: string[] = [];
+  const motionProfiles: Array<{ duration: string; arrival: string; idle: string }> = [];
   for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     const context = await browser.newContext({ baseURL, reducedMotion });
     const page = await context.newPage();
     await page.goto('./');
     await page.getByRole('button', { name: /TODAY/ }).click();
-    durations.push(await page.locator('.tray-machine').evaluate((node) => getComputedStyle(node).transitionDuration));
+    motionProfiles.push({
+      duration: await page.locator('.tray-machine').evaluate((node) => getComputedStyle(node).transitionDuration),
+      arrival: await page.locator('.tray-machine__carrier').evaluate((node) => getComputedStyle(node).animationName),
+      idle: await page.locator('.tray-machine__carrier img').evaluate((node) => getComputedStyle(node).animationName)
+    });
     await context.close();
   }
-  expect(durations[0]).toBe(durations[1]);
-  expect(durations[0]).toContain('0.7s');
+  expect(motionProfiles[0]).toEqual(motionProfiles[1]);
+  expect(motionProfiles[0].duration).toContain('0.7s');
+  expect(motionProfiles[0].arrival).toBe('tray-carrier-arrive');
+  expect(motionProfiles[0].idle).toBe('tray-carrier-breathe');
 });
 
 test('clock uses local 24-hour time and the zipper clips todo content', async ({ page }) => {

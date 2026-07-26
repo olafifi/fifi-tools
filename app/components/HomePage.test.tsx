@@ -44,6 +44,15 @@ describe('HomePage', () => {
     );
   });
 
+  it('returns keyboard focus to the tray dock after closing the machine', async () => {
+    render(<HomePage />);
+
+    await userEvent.click(screen.getByRole('button', { name: /TODAY/ }));
+    await userEvent.click(screen.getByRole('button', { name: '收起临时内容托盘' }));
+
+    expect(screen.getByRole('button', { name: /TODAY/ })).toHaveFocus();
+  });
+
   it('shows both production tools and five games', () => {
     render(<HomePage />);
 

@@ -406,7 +406,7 @@ img { display: block; max-width: 100%; }
 .temporary-tray.is-receiving:not(.is-open) .tray-dock__body { animation: tray-mascot-load .72s cubic-bezier(.2,.8,.2,1) both; }
 .temporary-tray.is-receiving:not(.is-open) .tray-dock__lifted-tray { animation: tray-load-rebound .72s cubic-bezier(.2,.8,.2,1) both; }
 .temporary-tray.is-receiving:not(.is-open) .tray-dock__plate { animation: tray-plate-load .72s cubic-bezier(.2,.8,.2,1) both; }
-.temporary-tray.is-receiving .tray-machine { animation: tray-machine-receive .72s cubic-bezier(.2,.8,.2,1); }
+.temporary-tray.is-open.is-receiving .tray-machine { animation: tray-machine-receive .72s cubic-bezier(.2,.8,.2,1); }
 .temporary-tray.is-open .tray-dock { opacity: 0; transform: translate(26px, -18px) scale(.84); pointer-events: none; transition-delay: .22s; }
 .temporary-tray.is-opening .tray-dock__body { animation: tray-mascot-retreat .66s cubic-bezier(.25,.78,.2,1) both; }
 .temporary-tray.is-opening .tray-dock__lifted-tray { animation: tray-open-lift .66s cubic-bezier(.25,.78,.2,1) both; }

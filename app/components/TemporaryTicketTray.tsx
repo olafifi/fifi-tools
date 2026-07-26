@@ -21,6 +21,7 @@ export function TemporaryTicketTray() {
   const keyboardStarted = useRef(0);
   const clearStarted = useRef(false);
   const previousCount = useRef(0);
+  const dockRef = useRef<HTMLButtonElement>(null);
   const receiveTimer = useRef<number>(0);
   const closeTimer = useRef<number>(0);
 
@@ -106,6 +107,7 @@ export function TemporaryTicketTray() {
   const closeTray = () => {
     setClosing(true);
     setOpen(false);
+    dockRef.current?.focus();
     window.clearTimeout(closeTimer.current);
     closeTimer.current = window.setTimeout(() => setClosing(false), 760);
   };
@@ -119,6 +121,7 @@ export function TemporaryTicketTray() {
       aria-label="临时内容托盘"
     >
       <button
+        ref={dockRef}
         type="button"
         className="tray-dock"
         aria-expanded={open}
