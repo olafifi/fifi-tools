@@ -79,7 +79,7 @@ export function TemporaryTicketTray() {
   const style = { '--pull-progress': pullProgress } as CSSProperties;
 
   return (
-    <section className={`temporary-tray${open ? ' is-open' : ''}`} style={style} aria-label="蛋白临时票据传送盘">
+    <section className={`temporary-tray${open ? ' is-open' : ''}`} style={style} aria-label="临时内容托盘">
       <button
         type="button"
         className="tray-dock"
@@ -98,10 +98,10 @@ export function TemporaryTicketTray() {
       <aside id="temporary-ticket-tray-panel" className="tray-machine" aria-hidden={!open}>
         <div className="tray-machine__cap">
           <div>
-            <span>蛋白临时票据传送盘</span>
+            <span>临时内容托盘</span>
             <small>LOCAL · TODAY / {String(tray.tickets.length).padStart(2, '0')}</small>
           </div>
-          <button type="button" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)} aria-label="收起蛋白临时票据传送盘">×</button>
+          <button type="button" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)} aria-label="收起临时内容托盘">×</button>
         </div>
 
         <div className="tray-machine__body">
@@ -111,21 +111,21 @@ export function TemporaryTicketTray() {
               {tray.error}<span>×</span>
             </button>
           )}
-          {tray.loading ? <div className="ticket-loading">蛋白正在检查今天的票据…</div> : (
+          {tray.loading ? <div className="ticket-loading">蛋白正在检查今天的内容…</div> : (
             <TicketConveyor tickets={tray.tickets} ghosts={ghosts} onDiscard={(ticket) => void discard(ticket)} />
           )}
           <div className="tray-shredder" aria-hidden="true"><span /> <b>SHRED</b> <span /></div>
         </div>
 
         <div className="tray-clear-zone">
-          <p>{tray.tickets.length ? '向下拉到底，粉碎今天的全部票据' : '传送盘已经清空'}</p>
+          <p>{tray.tickets.length ? '向下拉到底，清空今天的全部内容' : '托盘已经清空'}</p>
           <div className="tray-clear-track"><i /></div>
           <button
             type="button"
             className="tray-clear-handle"
             tabIndex={open ? 0 : -1}
             disabled={tray.tickets.length === 0}
-            aria-label="长拉清空全部票据"
+            aria-label="长拉清空全部内容"
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={resetPull}

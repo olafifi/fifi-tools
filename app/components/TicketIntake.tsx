@@ -51,7 +51,7 @@ export function TicketIntake({ onAddText, onAddFiles }: TicketIntakeProps) {
     >
       <span className="ticket-intake__label">IN / 临时投递口</span>
       <textarea
-        aria-label="临时票据内容"
+        aria-label="临时内容"
         value={value}
         maxLength={5000}
         placeholder="粘贴文字或链接，也可以把文件拖进来"

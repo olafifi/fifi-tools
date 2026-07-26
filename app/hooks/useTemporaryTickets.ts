@@ -75,7 +75,7 @@ export function useTemporaryTickets(storePromise = defaultStorePromise): Tempora
       setError('');
       return true;
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : '这张票据没有放进去，请再试一次。');
+      setError(reason instanceof Error ? reason.message : '这项内容没有放进去，请再试一次。');
       return false;
     }
   }, [storePromise]);

@@ -12,15 +12,15 @@ const STORE_NAME = 'tickets';
 function requestResult<T>(request: IDBRequest<T>) {
   return new Promise<T>((resolve, reject) => {
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error('本地票据读取失败。'));
+    request.onerror = () => reject(request.error ?? new Error('本地内容读取失败。'));
   });
 }
 
 function transactionDone(transaction: IDBTransaction) {
   return new Promise<void>((resolve, reject) => {
     transaction.oncomplete = () => resolve();
-    transaction.onabort = () => reject(transaction.error ?? new Error('本地票据写入失败。'));
-    transaction.onerror = () => reject(transaction.error ?? new Error('本地票据写入失败。'));
+    transaction.onabort = () => reject(transaction.error ?? new Error('本地内容写入失败。'));
+    transaction.onerror = () => reject(transaction.error ?? new Error('本地内容写入失败。'));
   });
 }
 

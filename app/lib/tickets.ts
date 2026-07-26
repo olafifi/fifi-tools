@@ -74,14 +74,14 @@ export function ticketByteSize(ticket: Pick<TicketDraft, 'payload' | 'size'>) {
 
 export function validateCapacity(existing: TicketRecord[], incoming: TicketDraft[]): CapacityResult {
   if (existing.length + incoming.length > MAX_TICKET_COUNT) {
-    return { ok: false, reason: 'count', message: '传送盘最多保留 20 张票据，先丢掉几张再放吧。' };
+    return { ok: false, reason: 'count', message: '托盘最多保留 20 项内容，先清理几项再放吧。' };
   }
   if (incoming.some((ticket) => ticket.type !== 'text' && ticket.type !== 'link' && ticketByteSize(ticket) > MAX_FILE_BYTES)) {
     return { ok: false, reason: 'item-size', message: '单个图片或文件不能超过 25 MB。' };
   }
   const total = [...existing, ...incoming].reduce((sum, ticket) => sum + ticketByteSize(ticket), 0);
   if (total > MAX_TOTAL_BYTES) {
-    return { ok: false, reason: 'total-size', message: '今天的票据已经接近 100 MB，请先清理一些。' };
+    return { ok: false, reason: 'total-size', message: '今天的临时内容已经接近 100 MB，请先清理一些。' };
   }
   return { ok: true };
 }
