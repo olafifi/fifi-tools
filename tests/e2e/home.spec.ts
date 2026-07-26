@@ -32,6 +32,23 @@ async function canvasSignature(page: Page) {
   });
 }
 
+async function measureBackgroundFrames(page: Page, durationMs = 180) {
+  await page.addInitScript(() => {
+    const state = window as typeof window & { __fifiFieldFrames?: number };
+    state.__fifiFieldFrames = 0;
+    const fillRect = CanvasRenderingContext2D.prototype.fillRect;
+    CanvasRenderingContext2D.prototype.fillRect = function (...args) {
+      if (this.canvas.classList.contains('interactive-field')) state.__fifiFieldFrames = (state.__fifiFieldFrames ?? 0) + 1;
+      return fillRect.call(this, ...args);
+    };
+  });
+  await page.goto('./');
+  await page.waitForTimeout(80);
+  await page.evaluate(() => { (window as typeof window & { __fifiFieldFrames?: number }).__fifiFieldFrames = 0; });
+  await page.waitForTimeout(durationMs);
+  return page.evaluate(() => (window as typeof window & { __fifiFieldFrames?: number }).__fifiFieldFrames ?? 0);
+}
+
 async function expectVisibleHomepageMotion(page: Page) {
   await page.goto('./');
   const before = await canvasSignature(page);
@@ -193,6 +210,23 @@ test('tool transition shows a real URL, redirects approved tools, and rejects un
 
 test('normal motion profile keeps the homepage interactions visible', async ({ page }) => {
   await expectVisibleHomepageMotion(page);
+});
+
+test('both motion profiles keep the full foreground background cadence', async ({ browser, baseURL }) => {
+  const fullContext = await browser.newContext({ baseURL, reducedMotion: 'no-preference' });
+  const reducedContext = await browser.newContext({ baseURL, reducedMotion: 'reduce' });
+  const fullPage = await fullContext.newPage();
+  const reducedPage = await reducedContext.newPage();
+  try {
+    const fullFrames = await measureBackgroundFrames(fullPage);
+    const reducedFrames = await measureBackgroundFrames(reducedPage);
+    expect(fullFrames).toBeGreaterThanOrEqual(6);
+    expect(reducedFrames).toBeGreaterThanOrEqual(6);
+    expect(Math.abs(fullFrames - reducedFrames)).toBeLessThanOrEqual(3);
+  } finally {
+    await fullContext.close();
+    await reducedContext.close();
+  }
 });
 
 test.describe('reduced motion profile', () => {

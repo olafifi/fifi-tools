@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { frameSmoothingAlpha } from '../lib/motion';
 
 type PointerState = { x: number; y: number; tx: number; ty: number };
 
@@ -10,15 +11,12 @@ export function InteractiveField() {
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
     if (!canvas || !context) return;
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const motionScale = reducedMotion ? 0.36 : 1;
-    const frameInterval = reducedMotion ? 66 : 0;
 
     const pointer: PointerState = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 };
     let width = window.innerWidth;
     let height = window.innerHeight;
     let frame = 0;
-    let lastDraw = -frameInterval;
+    let previousFrameTime: number | null = null;
 
     const resize = () => {
       const density = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -33,15 +31,15 @@ export function InteractiveField() {
       const points: Array<[number, number]> = [];
       for (let i = 0; i < 64; i += 1) {
         const angle = i / 64 * Math.PI * 2;
-        const ripple = radius * scale * (1 + motionScale * (
-          0.13 * Math.sin(angle * 3 + time + seed) + 0.07 * Math.sin(angle * 5 - time * 0.7 + seed * 2)
-        ));
+        const ripple = radius * scale * (
+          1 + 0.13 * Math.sin(angle * 3 + time + seed) + 0.07 * Math.sin(angle * 5 - time * 0.7 + seed * 2)
+        );
         let x = cx + Math.cos(angle) * ripple;
         let y = cy + Math.sin(angle) * ripple * 0.68;
         const dx = x - pointer.x * width;
         const dy = y - pointer.y * height;
         const distance = Math.hypot(dx, dy);
-        const push = Math.max(0, 1 - distance / 255) * 39 * scale * motionScale;
+        const push = Math.max(0, 1 - distance / 255) * 39 * scale;
         x += dx / (distance || 1) * push;
         y += dy / (distance || 1) * push;
         points.push([x, y]);
@@ -73,14 +71,12 @@ export function InteractiveField() {
     };
 
     const draw = (milliseconds: number) => {
-      if (milliseconds - lastDraw < frameInterval) {
-        frame = window.requestAnimationFrame(draw);
-        return;
-      }
-      lastDraw = milliseconds;
-      const time = milliseconds * 0.0003 * (reducedMotion ? 0.55 : 1);
-      pointer.x += (pointer.tx - pointer.x) * 0.04;
-      pointer.y += (pointer.ty - pointer.y) * 0.04;
+      const deltaMs = previousFrameTime === null ? 1000 / 60 : milliseconds - previousFrameTime;
+      previousFrameTime = milliseconds;
+      const smoothingAlpha = frameSmoothingAlpha(deltaMs);
+      const time = milliseconds * 0.0003;
+      pointer.x += (pointer.tx - pointer.x) * smoothingAlpha;
+      pointer.y += (pointer.ty - pointer.y) * smoothingAlpha;
       context.fillStyle = '#171411';
       context.fillRect(0, 0, width, height);
       const base = Math.min(width, height);
