@@ -114,7 +114,7 @@ export function TemporaryTicketTray() {
 
   return (
     <section
-      className={`temporary-tray${open ? ' is-open is-opening' : ''}${closing ? ' is-closing' : ''}${receiving ? ' is-receiving' : ''}`}
+      className={`temporary-tray${open ? ' is-open is-opening' : ''}${closing ? ' is-closing' : ''}${receiving ? ' is-receiving' : ''}${pullProgress > 0 ? ' is-pulling-clear' : ''}`}
       style={style}
       aria-label="临时内容托盘"
     >
@@ -137,6 +137,10 @@ export function TemporaryTicketTray() {
         </span>
         <i aria-hidden="true">↖</i>
       </button>
+
+      <span className="tray-machine__carrier" aria-hidden="true">
+        <img src={mascotAsset} alt="" />
+      </span>
 
       <aside id="temporary-ticket-tray-panel" className="tray-machine" aria-hidden={!open}>
         <div className="tray-machine__cap">

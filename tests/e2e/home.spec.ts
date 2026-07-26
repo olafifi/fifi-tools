@@ -181,6 +181,48 @@ test('temporary tray persists text and image tickets, then discards them', async
   await expect(page.getByText('example.com', { exact: true })).toHaveCount(0);
 });
 
+test('expanded tray carrier supports the machine and reacts to its load', async ({ page }) => {
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 375, height: 812 }
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('./');
+    await page.getByRole('button', { name: /TODAY/ }).click();
+
+    const machine = page.locator('.tray-machine');
+    const carrier = page.locator('.tray-machine__carrier');
+    await expect(machine).toBeVisible();
+    await expect(carrier).toBeVisible();
+
+    const machineBox = await machine.boundingBox();
+    const carrierBox = await carrier.boundingBox();
+    if (!machineBox || !carrierBox) throw new Error('Expanded tray carrier layout is missing.');
+
+    expect(carrierBox.y).toBeGreaterThan(machineBox.y + machineBox.height - 80);
+    expect(carrierBox.x).toBeLessThan(machineBox.x + machineBox.width);
+    expect(carrierBox.x + carrierBox.width).toBeGreaterThan(machineBox.x);
+    await expect(page.getByRole('button', { name: '长拉清空全部内容' })).toBeVisible();
+  }
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('./');
+  await page.getByRole('button', { name: /TODAY/ }).click();
+  await page.getByRole('textbox', { name: '临时内容' }).fill('承重测试');
+  await page.getByRole('button', { name: '送入' }).click();
+  await expect(page.locator('.temporary-tray')).toHaveClass(/is-receiving/);
+  await expect(page.locator('.tray-machine__carrier img')).toHaveCSS('animation-name', 'tray-carrier-receive');
+
+  const clear = page.getByRole('button', { name: '长拉清空全部内容' });
+  const clearBox = await clear.boundingBox();
+  if (!clearBox) throw new Error('Clear handle is not visible.');
+  await page.mouse.move(clearBox.x + clearBox.width / 2, clearBox.y + clearBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(clearBox.x + clearBox.width / 2, clearBox.y + clearBox.height / 2 + 32);
+  await expect(page.locator('.temporary-tray')).toHaveClass(/is-pulling-clear/);
+  await page.mouse.up();
+});
+
 test('temporary tray expires at 06:00 and keyboard hold clears all', async ({ page }) => {
   await page.clock.install({ time: new Date(2026, 6, 26, 5, 50, 0) });
   await page.goto('./');

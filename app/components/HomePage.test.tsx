@@ -31,6 +31,19 @@ describe('HomePage', () => {
     );
   });
 
+  it('keeps Danbai carrying the tray after the content machine opens', async () => {
+    const { container } = render(<HomePage />);
+
+    await userEvent.click(screen.getByRole('button', { name: /TODAY/ }));
+
+    const carrier = container.querySelector('.tray-machine__carrier');
+    expect(carrier).toHaveAttribute('aria-hidden', 'true');
+    expect(carrier?.querySelector('img')).toHaveAttribute(
+      'src',
+      '/danbai/temporary-content-tray-mascot.png'
+    );
+  });
+
   it('shows both production tools and five games', () => {
     render(<HomePage />);
 

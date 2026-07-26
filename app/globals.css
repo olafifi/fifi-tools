@@ -414,14 +414,52 @@ img { display: block; max-width: 100%; }
 .temporary-tray.is-closing .tray-dock__body { animation: tray-mascot-catch .72s cubic-bezier(.18,.84,.18,1) both; }
 .temporary-tray.is-closing .tray-dock__lifted-tray { animation: tray-catch-settle .72s cubic-bezier(.18,.84,.18,1) both; }
 
+.tray-machine__carrier {
+  position: absolute;
+  z-index: 1;
+  right: 114px;
+  bottom: -18px;
+  width: 205px;
+  height: 181px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(64px) scale(.84);
+  transform-origin: 50% 92%;
+}
+.tray-machine__carrier img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  clip-path: inset(36% 0 0 0);
+  filter: drop-shadow(4px 5px 0 var(--black));
+  transform-origin: 50% 86%;
+  will-change: transform;
+}
+.temporary-tray.is-open .tray-machine__carrier {
+  visibility: visible;
+  animation: tray-carrier-arrive .74s cubic-bezier(.18,.84,.18,1) both;
+}
+.temporary-tray.is-open .tray-machine__carrier img { animation: tray-carrier-breathe 2.8s .74s ease-in-out infinite; }
+.temporary-tray.is-open.is-receiving .tray-machine__carrier img { animation: tray-carrier-receive .72s cubic-bezier(.2,.8,.2,1) both; }
+.temporary-tray.is-open.is-pulling-clear .tray-machine__carrier img { animation: tray-carrier-pull .16s steps(2, end) infinite; }
+.temporary-tray.is-closing .tray-machine__carrier {
+  visibility: visible;
+  animation: tray-carrier-exit .72s cubic-bezier(.18,.84,.18,1) both;
+}
+.temporary-tray.is-closing .tray-machine__carrier img { animation: tray-carrier-push-close .72s cubic-bezier(.18,.84,.18,1) both; }
+
 .tray-machine {
   position: absolute;
+  z-index: 2;
   right: 0;
-  bottom: 0;
+  bottom: 86px;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) 92px;
   width: min(434px, calc(100vw - 42px));
-  height: min(704px, calc(100dvh - 42px));
+  height: min(704px, calc(100dvh - 128px));
   overflow: hidden;
   border: 4px solid var(--black);
   border-radius: 24px 46px 18px 18px;
@@ -654,6 +692,12 @@ img { display: block; max-width: 100%; }
 @keyframes tray-dock-catch { 0% { opacity: 0; transform: translate(24px, -24px) scale(.82); } 52% { opacity: 1; } 100% { opacity: 1; transform: none; } }
 @keyframes tray-mascot-catch { 0% { opacity: 0; transform: translate(22px, 38px) scale(.78); } 58% { opacity: 1; transform: translateY(7px) scaleX(1.04) scaleY(.95); } 82% { transform: translateY(-3px) scaleX(.99) scaleY(1.015); } 100% { opacity: 1; transform: none; } }
 @keyframes tray-catch-settle { 0% { opacity: 0; transform: translate(-18px, -22px) scaleX(1.42); } 56% { opacity: 1; transform: translateY(6px) rotate(-1.4deg); } 82% { transform: translateY(-3px) rotate(.7deg); } 100% { opacity: 1; transform: none; } }
+@keyframes tray-carrier-arrive { 0% { opacity: 0; transform: translateY(64px) scale(.84); } 52% { opacity: 1; transform: translateY(-5px) scaleX(1.035) scaleY(.96); } 76% { transform: translateY(3px) scaleX(.99) scaleY(1.018); } 100% { opacity: 1; transform: none; } }
+@keyframes tray-carrier-breathe { 0%,100% { transform: translateY(0) rotate(-.2deg) scaleY(1); } 48% { transform: translateY(2px) rotate(.2deg) scaleY(.985); } }
+@keyframes tray-carrier-receive { 0%,100% { transform: none; } 46% { transform: translateY(6px) scaleX(1.045) scaleY(.945); } 74% { transform: translateY(-3px) scaleX(.985) scaleY(1.022); } }
+@keyframes tray-carrier-pull { 0% { transform: translate(-1px, calc(var(--pull-progress) * 5px)) rotate(calc(var(--pull-progress) * -1deg)) scaleY(calc(1 - var(--pull-progress) * .04)); } 100% { transform: translate(1px, calc(var(--pull-progress) * 5px)) rotate(calc(var(--pull-progress) * 1deg)) scaleY(calc(1 - var(--pull-progress) * .04)); } }
+@keyframes tray-carrier-exit { 0%,46% { opacity: 1; transform: none; } 52%,100% { opacity: 0; transform: translateY(-20px) scale(.9); } }
+@keyframes tray-carrier-push-close { 0% { transform: none; } 44% { transform: translateY(-12px) scaleX(.98) scaleY(1.035); } 100% { transform: translateY(-28px) scale(.82); } }
 @keyframes ticket-feed-in { from { opacity: 0; transform: translateY(-38px) rotate(-1.5deg); } to { opacity: 1; transform: none; } }
 @keyframes ticket-shred { 0% { opacity: 1; transform: none; clip-path: inset(0); } 62% { opacity: 1; transform: translateY(190px) scaleX(.88); clip-path: inset(0); } 100% { opacity: 0; transform: translateY(285px) scaleX(.22); clip-path: inset(0 34% 0 34%); } }
 @keyframes ticket-clear-shred { 0% { opacity: 1; transform: none; } 35% { transform: translateY(75px) rotate(2deg); } 100% { opacity: 0; transform: translateY(300px) scale(.16) rotate(-5deg); } }
@@ -722,7 +766,8 @@ img { display: block; max-width: 100%; }
   .todo-root { position: absolute; left: 20px; bottom: 22px; transform: scale(.72); transform-origin: left bottom; }
   .temporary-tray { right: 18px; bottom: 18px; }
   .tray-dock { width: 216px; transform: scale(.9); transform-origin: right bottom; }
-  .tray-machine { position: fixed; right: 14px; bottom: 14px; width: calc(100vw - 28px); height: min(720px, calc(100dvh - 28px)); }
+  .tray-machine__carrier { right: 80px; bottom: -30px; width: 180px; height: 159px; }
+  .tray-machine { position: fixed; right: 14px; bottom: 68px; width: calc(100vw - 28px); height: min(704px, calc(100dvh - 82px)); }
 }
 
 @media (max-width: 430px) {
@@ -750,7 +795,8 @@ img { display: block; max-width: 100%; }
   .game-window { width: calc(100vw - 14px); height: calc(100dvh - 14px); border-radius: 10px; box-shadow: none; }
   .temporary-tray { right: 10px; bottom: 11px; }
   .tray-dock { width: 202px; transform: scale(.82); }
-  .tray-machine { right: 8px; bottom: 8px; width: calc(100vw - 16px); height: calc(100dvh - 16px); border-radius: 17px 34px 13px 13px; box-shadow: 6px 7px 0 var(--black); }
+  .tray-machine__carrier { right: 92px; bottom: -31px; width: 170px; height: 150px; }
+  .tray-machine { right: 8px; bottom: 68px; width: calc(100vw - 16px); height: min(704px, calc(100dvh - 82px)); border-radius: 17px 34px 13px 13px; box-shadow: 6px 7px 0 var(--black); }
   .tray-machine__cap span { font-size: 16px; }
   .tray-machine__body { padding-inline: 10px; }
   .ticket-stack { padding-inline: 14px; }
