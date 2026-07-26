@@ -191,7 +191,6 @@ git commit -m "fix: 统一猫猫拖尾与工具跟随"
 - Modify: `public/open-tool.js`
 - Modify: `public/open-tool.css`
 - Modify: `tests/e2e/home.spec.ts`
-- Modify: `tests/games/tool-transition.test.mjs`
 
 **Interfaces:**
 - Produces: `html[data-motion="full"]` in every valid portal session.
@@ -199,16 +198,11 @@ git commit -m "fix: 统一猫猫拖尾与工具跟随"
 
 - [ ] **Step 1: Write the failing portal tests**
 
-Change the reduced-context browser expectation from `data-motion="reduced"` and an 820 ms redirect to `data-motion="full"`; assert the portal is still visible after 900 ms and redirects before 2200 ms. Add a static game test that rejects a reduced portal timeout or `cat-portal-reduced` keyframes.
+Change the reduced-context browser expectation from `data-motion="reduced"` and an 820 ms redirect to `data-motion="full"`; assert the portal is still visible after 900 ms and redirects before 2200 ms. This exercises the real portal rather than checking its source text.
 
 - [ ] **Step 2: Run the focused tests and verify RED**
 
-Run:
-
-```bash
-npm run test:games -- --test-name-pattern "tool transition"
-npm run e2e -- --grep "tool portal"
-```
+Run: `npm run e2e -- --grep "tool portal"`
 
 Expected: FAIL because the reduced portal profile still exists.
 
@@ -218,14 +212,14 @@ Set `root.dataset.motion = 'full'` unconditionally for valid tools, always redir
 
 - [ ] **Step 4: Run the focused tests and verify GREEN**
 
-Run the same two focused commands from Step 2.
+Run the same focused command from Step 2.
 
 Expected: both commands PASS.
 
 - [ ] **Step 5: Commit Task 4**
 
 ```bash
-git add public/open-tool.js public/open-tool.css tests/e2e/home.spec.ts tests/games/tool-transition.test.mjs
+git add public/open-tool.js public/open-tool.css tests/e2e/home.spec.ts docs/superpowers/plans/2026-07-26-fifi-lab-unified-full-motion.md
 git commit -m "fix: 所有设备播放完整传送动画"
 ```
 

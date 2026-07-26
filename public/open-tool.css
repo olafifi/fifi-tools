@@ -74,12 +74,6 @@ html[data-state="error"] .portal-error { align-self: center; justify-self: cente
   78% { left: calc(88% - 118px); opacity: 0; transform: translateY(-49%) rotate(18deg) scale(.12); }
   100% { left: calc(88% - 118px); opacity: 0; transform: translateY(-49%) scale(.12); }
 }
-@keyframes cat-portal-reduced {
-  0% { left: calc(6vw + 44px); opacity: 0; transform: translateY(-48%) scale(.58); }
-  24% { opacity: 1; transform: translateY(-50%) scale(.78); }
-  72% { left: calc(6vw + 90px); opacity: 1; transform: translateY(-52%) scale(.88); }
-  100% { left: calc(6vw + 110px); opacity: 0; transform: translateY(-50%) scale(.72); }
-}
 @keyframes ticket-arrive { 0%, 78% { transform: translateY(-50%) rotate(7deg) scale(0); } 91% { transform: translateY(-50%) rotate(-3deg) scale(1.13); } 100% { transform: translateY(-50%) rotate(0) scale(1); } }
 @keyframes progress { to { width: 100%; } }
 
@@ -93,13 +87,4 @@ html[data-state="error"] .portal-error { align-self: center; justify-self: cente
   .portal-cat { width: 88px; }
   .delivery-ticket { right: 20px; width: 134px; padding-inline: 10px; }
   .delivery-ticket strong { font-size: 18px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .portal i { animation-duration: 3s; }
-  .portal-cat { animation: cat-portal-reduced .72s ease-out both; }
-  .cat-leg { animation-duration: .28s; animation-iteration-count: 2; }
-  .cat-tail { animation-duration: .34s; animation-iteration-count: 2; }
-  .delivery-ticket { animation-duration: .78s; }
-  .portal-progress i { animation-duration: .8s; }
 }

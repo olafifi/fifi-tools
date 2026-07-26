@@ -15,7 +15,6 @@ if (!tool) {
   document.title = `正在打开 ${tool.name} · FIFI Lab`;
   root.dataset.state = 'traveling';
 
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  root.dataset.motion = reduced ? 'reduced' : 'full';
-  window.setTimeout(() => window.location.replace(tool.href), reduced ? 820 : 1500);
+  root.dataset.motion = 'full';
+  window.setTimeout(() => window.location.replace(tool.href), 1500);
 }

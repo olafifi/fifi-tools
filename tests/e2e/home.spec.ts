@@ -280,7 +280,7 @@ test('both motion profiles keep the same full cat trail and tool tilt', async ({
 });
 
 test.describe('reduced motion profile', () => {
-  test('keeps a restrained version of the homepage interactions visible', async ({ browser, baseURL }) => {
+  test('keeps the full homepage interactions visible', async ({ browser, baseURL }) => {
     const context = await browser.newContext({ baseURL, reducedMotion: 'reduce' });
     const page = await context.newPage();
     try {
@@ -291,7 +291,7 @@ test.describe('reduced motion profile', () => {
     }
   });
 
-  test('keeps the reduced tool portal visible before redirecting', async ({ browser, baseURL }) => {
+  test('keeps the full tool portal visible before redirecting', async ({ browser, baseURL }) => {
     const context = await browser.newContext({ baseURL, reducedMotion: 'reduce' });
     const page = await context.newPage();
     try {
@@ -300,10 +300,10 @@ test.describe('reduced motion profile', () => {
       });
 
       await page.goto('./open-tool.html?tool=image-processor');
-      await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
-      await page.waitForTimeout(300);
+      await expect(page.locator('html')).toHaveAttribute('data-motion', 'full');
+      await page.waitForTimeout(900);
       await expect(page).toHaveURL(/open-tool\.html\?tool=image-processor/);
-      await expect(page).toHaveURL('https://olafifi.github.io/ui-image-processor/', { timeout: 2000 });
+      await expect(page).toHaveURL('https://olafifi.github.io/ui-image-processor/', { timeout: 2200 });
     } finally {
       await context.close();
     }
