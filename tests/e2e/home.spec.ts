@@ -111,8 +111,9 @@ test('home stays usable without horizontal overflow at key widths', async ({ pag
     await expect(page.getByRole('heading', { name: /智力\s*检测站/ })).toBeVisible();
     await expect(page.getByRole('link', { name: 'FiFi 图片处理工具' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'FiFi 富文本转换' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'FIFI Lab / 菲菲实验站' })).toBeVisible();
-    await expect(page.getByText('一些能让生活省点力气的小实验。')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'FIFI Lab 首页' })).toBeVisible();
+    await expect(page.getByText('菲菲实验站')).toHaveCount(0);
+    await expect(page.getByRole('region', { name: '蛋白临时票据传送盘' })).toBeVisible();
     await expect(page.locator('.count-curve')).toHaveText('我有 3 条待办 · 0 条完成');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
   }
@@ -130,8 +131,8 @@ test('desktop home uses the viewport and keeps the game station on the left', as
     const shellBox = await page.locator('.site-shell').boundingBox();
     const stationBox = await page.locator('.game-station').boundingBox();
     const toolsBox = await page.locator('.tool-cluster').boundingBox();
-    const heroBox = await page.locator('.lab-hero').boundingBox();
-    if (!shellBox || !stationBox || !toolsBox || !heroBox) throw new Error('Home layout boxes are missing.');
+    const trayBox = await page.locator('.tray-dock').boundingBox();
+    if (!shellBox || !stationBox || !toolsBox || !trayBox) throw new Error('Home layout boxes are missing.');
 
     expect(shellBox.x).toBeLessThanOrEqual(17);
     expect(viewport.width - shellBox.x - shellBox.width).toBeLessThanOrEqual(17);
@@ -139,7 +140,7 @@ test('desktop home uses the viewport and keeps the game station on the left', as
     expect(stationBox.width).toBeGreaterThanOrEqual(100);
     expect(stationBox.width).toBeLessThanOrEqual(120);
     expect(toolsBox.x).toBeGreaterThan(stationBox.x + stationBox.width);
-    expect(heroBox.x).toBeGreaterThan(toolsBox.x);
+    expect(trayBox.x).toBeGreaterThan(toolsBox.x);
 
     const cardWidths = await page.locator('.tool-card').evaluateAll((cards) =>
       cards.map((card) => card.getBoundingClientRect().width)
@@ -148,6 +149,69 @@ test('desktop home uses the viewport and keeps the game station on the left', as
     expect(Math.abs(cardWidths[0] - cardWidths[1])).toBeLessThanOrEqual(1);
     expect(cardWidths[0]).toBeGreaterThan(220);
   }
+});
+
+test('temporary tray persists text and image tickets, then discards them', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('button', { name: /TODAY/ }).click();
+  await page.getByRole('textbox', { name: '临时票据内容' }).fill('https://example.com/relay');
+  await page.getByRole('button', { name: '送入' }).click();
+  await page.getByLabel('选择临时文件').setInputFiles('public/danbai/blank.png');
+
+  await expect(page.locator('.ticket-card')).toHaveCount(2);
+  await expect(page.getByText('example.com', { exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: '查看图片 blank.png' })).toBeVisible();
+
+  await page.reload();
+  await page.getByRole('button', { name: /TODAY 02/ }).click();
+  await expect(page.locator('.ticket-card')).toHaveCount(2);
+
+  await page.getByRole('button', { name: '粉碎 example.com' }).click();
+  await expect(page.getByText('example.com', { exact: true })).toHaveCount(0);
+  await page.reload();
+  await page.getByRole('button', { name: /TODAY 01/ }).click();
+  await expect(page.getByText('example.com', { exact: true })).toHaveCount(0);
+});
+
+test('temporary tray expires at 06:00 and keyboard hold clears all', async ({ page }) => {
+  await page.clock.install({ time: new Date(2026, 6, 26, 5, 50, 0) });
+  await page.goto('./');
+  await page.getByRole('button', { name: /TODAY/ }).click();
+  await page.getByRole('textbox', { name: '临时票据内容' }).fill('换日前');
+  await page.getByRole('button', { name: '送入' }).click();
+  await expect(page.locator('.ticket-card')).toHaveCount(1);
+
+  await page.clock.setFixedTime(new Date(2026, 6, 26, 6, 1, 0));
+  await page.reload();
+  await page.getByRole('button', { name: /TODAY 00/ }).click();
+  await expect(page.locator('.ticket-card')).toHaveCount(0);
+
+  for (const value of ['第一张', '第二张']) {
+    await page.getByRole('textbox', { name: '临时票据内容' }).fill(value);
+    await page.getByRole('button', { name: '送入' }).click();
+  }
+  const clear = page.getByRole('button', { name: '长拉清空全部票据' });
+  await clear.focus();
+  await page.keyboard.down('Enter');
+  await page.waitForTimeout(950);
+  await page.keyboard.up('Enter');
+  await expect(page.locator('.ticket-card:not(.is-departing)')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('button', { name: /TODAY 00/ })).toBeVisible();
+});
+
+test('temporary tray keeps the same full transition in both motion profiles', async ({ browser, baseURL }) => {
+  const durations: string[] = [];
+  for (const reducedMotion of ['no-preference', 'reduce'] as const) {
+    const context = await browser.newContext({ baseURL, reducedMotion });
+    const page = await context.newPage();
+    await page.goto('./');
+    await page.getByRole('button', { name: /TODAY/ }).click();
+    durations.push(await page.locator('.tray-machine').evaluate((node) => getComputedStyle(node).transitionDuration));
+    await context.close();
+  }
+  expect(durations[0]).toBe(durations[1]);
+  expect(durations[0]).toContain('0.7s');
 });
 
 test('clock uses local 24-hour time and the zipper clips todo content', async ({ page }) => {
